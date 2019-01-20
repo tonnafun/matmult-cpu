@@ -44,7 +44,7 @@ void print256(__m256d var) {
 /* This auxiliary subroutine performs a smaller dgemm operation
  *  C := C + A * B
  * where C is M-by-N, A is M-by-K, and B is K-by-N. */
-static void do_block (int lda, int M, int N, int K, double* restrict A, double* restrict B, double* restrict C) {
+inline static void do_block (int lda, int M, int N, int K, double* restrict A, double* restrict B, double* restrict C) {
   /* For each row i of A */
   for (int i = 0; i < M; ++i)
     /* For each column j of B */ 
@@ -63,7 +63,7 @@ static void do_block (int lda, int M, int N, int K, double* restrict A, double* 
 }
 
 
-static void do_block2 (int lda, int K, double* restrict A, double* restrict B, double* restrict C)
+inline static void do_block2 (int lda, int K, double* restrict A, double* restrict B, double* restrict C)
 {
   register __m256d c00_c01_c02_c03 = _mm256_loadu_pd(C);
   register __m256d c10_c11_c12_c13 = _mm256_loadu_pd(C+lda);
@@ -83,7 +83,7 @@ static void do_block2 (int lda, int K, double* restrict A, double* restrict B, d
 //M = REGA = 3, N = REGB*256/64 = 16
 //for block1, M = 3, N = 16, which means all c00-c13 are stored in C
 //K changeable
-static void do_block1(int lda, int M, int N, int K, double* restrict A, double* restrict B, double* restrict C) {
+inline static void do_block1(int lda, int M, int N, int K, double* restrict A, double* restrict B, double* restrict C) {
   register __m256d c00,c01,c02,c03;
   register __m256d c10,c11,c12,c13;
   register __m256d c20,c21,c22,c23;
@@ -172,7 +172,7 @@ static void do_block1(int lda, int M, int N, int K, double* restrict A, double* 
       }
 	}
 
-static inline void block_square_multilv1(int lda, int M, int N, int K, double* restrict A, double* restrict B, double* restrict C){
+inline static inline void block_square_multilv1(int lda, int M, int N, int K, double* restrict A, double* restrict B, double* restrict C){
   for (int i = 0; i < M; i += 2)
     for(int j = 0; j < N; j += 4)
       for(int k = 0; k < K; k += BLOCK_SIZE1){
@@ -193,7 +193,7 @@ static inline void block_square_multilv1(int lda, int M, int N, int K, double* r
       }
 }
 
-static inline void block_square_multilv2(int lda, int M, int N, int K, double* restrict A, double* restrict B, double* restrict C){
+inline static inline void block_square_multilv2(int lda, int M, int N, int K, double* restrict A, double* restrict B, double* restrict C){
   for (int i = 0; i < M; i += BLOCK_SIZE2)
     for(int j = 0; j < N; j += BLOCK_SIZE2)
       for(int k = 0; k < K; k += BLOCK_SIZE2){
@@ -210,7 +210,7 @@ static inline void block_square_multilv2(int lda, int M, int N, int K, double* r
 
 
 
-static inline void block_square_multilv3(int lda, double* restrict A, double* restrict B, double* restrict C) {
+inline static inline void block_square_multilv3(int lda, double* restrict A, double* restrict B, double* restrict C) {
   for (int i = 0; i < lda; i += BLOCK_SIZE3)
     for(int j = 0; j < lda; j += BLOCK_SIZE3)
       for(int k = 0; k < lda; k += BLOCK_SIZE3) {
