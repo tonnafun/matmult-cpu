@@ -22,39 +22,29 @@ lv3 cache: 6144k
 
 
 #if !defined(BLOCK_SIZE1)
-//128 - 500
-//#define TRANSPOSE 1
 #define REGA 3
 #define REGB 4 // B = 4*4
 #define BLOCK_SIZE1 30
 #define BLOCK_SIZE BLOCK_SIZE1
 #define BLOCK_SIZE2 100
 #define BLOCK_SIZE3 104
-// #define BLOCK_SIZE1 36
-// #define BLOCK_SIZE2 104
-// #define BLOCK_SIZE3 512
 #endif
 
-
-// reference:
-// https://github.com/pytorch/glow/blob/405e632ef138f1d49db9c3181182f7efd837bccc/lib/Backends/CPU/libjit/libjit_defs.h
 #define min(a,b) (((a)<(b))?(a):(b))
 
 
-// Perform an unaligned store to a float pointer.
+// Print the content of a __m256d variable.
 void print256(__m256d var) {
     double *val = (double*) &var;
     printf("printf var: %lf %lf %lf %lf\n", 
            val[0], val[1], val[2], val[3]);
 }
 
-// Perform an unaligned store to a float pointer.
 
 /* This auxiliary subroutine performs a smaller dgemm operation
  *  C := C + A * B
  * where C is M-by-N, A is M-by-K, and B is K-by-N. */
-static void do_block (int lda, int M, int N, int K, double* A, double* B, double* C)
-{
+static void do_block (int lda, int M, int N, int K, double* strict A, double* strict B, double* strict C) {
   /* For each row i of A */
   for (int i = 0; i < M; ++i)
     /* For each column j of B */ 
@@ -73,7 +63,7 @@ static void do_block (int lda, int M, int N, int K, double* A, double* B, double
 }
 
 
-static void do_block2 (int lda, int K, double* A, double* B, double* C)
+static void do_block2 (int lda, int K, double* strict A, double* strict B, double* strict C)
 {
   register __m256d c00_c01_c02_c03 = _mm256_loadu_pd(C);
   register __m256d c10_c11_c12_c13 = _mm256_loadu_pd(C+lda);
@@ -93,8 +83,8 @@ static void do_block2 (int lda, int K, double* A, double* B, double* C)
 //M = REGA = 3, N = REGB*256/64 = 16
 //for block1, M = 3, N = 16, which means all c00-c13 are stored in C
 //K changeable
-static void do_block1(int lda, int M, int N, int K, double* A, double* B, double* C){
-	register __m256d c00,c01,c02,c03;
+static void do_block1(int lda, int M, int N, int K, double* strict A, double* strict B, double* strict C) {
+  register __m256d c00,c01,c02,c03;
   register __m256d c10,c11,c12,c13;
   register __m256d c20,c21,c22,c23;
   //totally 3*4*4 = 48 8float/per refresh
@@ -182,7 +172,7 @@ static void do_block1(int lda, int M, int N, int K, double* A, double* B, double
       }
 	}
 
-static inline void block_square_multilv1(int lda, int M, int N, int K, double* A, double* B, double* C){
+static inline void block_square_multilv1(int lda, int M, int N, int K, double* strict A, double* strict B, double* strict C){
   for (int i = 0; i < M; i += 2)
     for(int j = 0; j < N; j += 4)
       for(int k = 0; k < K; k += BLOCK_SIZE1){
@@ -203,7 +193,7 @@ static inline void block_square_multilv1(int lda, int M, int N, int K, double* A
       }
 }
 
-static inline void block_square_multilv2(int lda, int M, int N, int K, double* A, double* B, double* C){
+static inline void block_square_multilv2(int lda, int M, int N, int K, double* strict A, double* strict B, double* strict C){
   for (int i = 0; i < M; i += BLOCK_SIZE2)
     for(int j = 0; j < N; j += BLOCK_SIZE2)
       for(int k = 0; k < K; k += BLOCK_SIZE2){
@@ -220,7 +210,7 @@ static inline void block_square_multilv2(int lda, int M, int N, int K, double* A
 
 
 
-static inline void block_square_multilv3(int lda, double* A, double* B, double* C) {
+static inline void block_square_multilv3(int lda, double* strict A, double* strict B, double* strict C) {
   for (int i = 0; i < lda; i += BLOCK_SIZE3)
     for(int j = 0; j < lda; j += BLOCK_SIZE3)
       for(int k = 0; k < lda; k += BLOCK_SIZE3) {
@@ -236,7 +226,7 @@ static inline void block_square_multilv3(int lda, double* A, double* B, double* 
 }
 
 
-void square_dgemm (int lda, double* A, double* B, double* C) {
+void square_dgemm (int lda, double* strict A, double* strict B, double* strict C) {
 #ifdef TRANSPOSE
   for (int i = 0; i < lda; ++i)
     for (int j = i+1; j < lda; ++j) {
