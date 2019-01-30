@@ -88,15 +88,15 @@ OPTIMIZATION = $(MY_OPT)
 targets = benchmark-naive \
 			benchmark-blocked \
 			benchmark-blocked-final \
-			benchmark-blocked-naive
-#			benchmark-blas
+			benchmark-blocked-naive \
+			benchmark-blas
 
 objects = benchmark.o \
 			dgemm-naive.o \
 			dgemm-blocked.o \
 			dgemm-blocked-final.o \
-			dgemm-blocked-naive.o
-#			dgemm-blas.o
+			dgemm-blocked-naive.o \
+			dgemm-blas.o
 
 UTIL   = wall_time.o cmdLine.o
 
@@ -118,8 +118,8 @@ benchmark-blocked-final : benchmark.o dgemm-blocked-final.o $(UTIL)
 benchmark-blocked-naive : benchmark.o dgemm-blocked-naive.o $(UTIL)
 	$(CC) -o $@ $^ $(LDLIBS) -pg -mavx -mavx2
 
-#benchmark-blas : benchmark.o dgemm-blas.o $(UTIL)
-#	$(CC) -o $@ $^ $(LDLIBS) -mavx -mavx2 -mfma
+benchmark-blas : benchmark.o dgemm-blas.o $(UTIL)
+	$(CC) -o $@ $^ $(LDLIBS) -mavx -mavx2 -mfma
 
 %.o : %.c
 	$(CC) -c $(CFLAGS) -O3 $<
