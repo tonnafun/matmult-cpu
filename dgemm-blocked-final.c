@@ -14,6 +14,7 @@ const char* dgemm_desc = "Simple blocked dgemm.";
 #define min(a,b) (((a)<(b))?(a):(b))
 
 
+#ifdef IKJ
 static inline void do_block_naive(int lda, int M, int N, int K, double* restrict A, double* restrict B, double* restrict C) {
     for (int i = 0; i < M; ++i)
         for (int k = 0; k < K; ++k) {
@@ -23,6 +24,22 @@ static inline void do_block_naive(int lda, int M, int N, int K, double* restrict
             }
         }
 }
+#else
+static inline void do_block_naive(int lda, int M, int N, int K, double* restrict A, double* restrict B, double* restrict C) {
+    /* For each row i of A */
+    for (int i = 0; i < M; ++i)
+        /* For each column j of B */
+        for (int j = 0; j < N; ++j)
+        {
+            /* Compute C(i,j) */
+            register double cij = C[i*lda+j];
+            for (int k = 0; k < K; ++k)
+                cij += A[i*lda+k] * B[k*lda+j];
+
+            C[i*lda+j] = cij;
+        }
+}
+#endif
 
 
 // C[3x16] = A[3xBLOCK_SIZE1] x B[BLOCK_SIZE1x16]
