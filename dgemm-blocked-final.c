@@ -74,25 +74,27 @@ static inline void do_block_3x16(int lda, int M, int N, int K, double * restrict
 //        register __m256d a1 = _mm256_broadcast_sd(A + 0*lda + p);
         register __m256d b1 = _mm256_loadu_pd(B + p*lda + 0*8); //4 8float
         register __m256d b2 = _mm256_loadu_pd(B + p*lda + 4+0*8); //4 8float
-        register __m256d a = _mm256_broadcast_sd(A + 0*lda + p);
-        c00 = _mm256_fmadd_pd(a, b1, c00);
-        c01 = _mm256_fmadd_pd(a, b2, c01);
+        register __m256d a1 = _mm256_broadcast_sd(A + 0*lda + p);
+        register __m256d a2 = a1;
+        c00 = _mm256_fmadd_pd(a1, b1, c00);
+        c01 = _mm256_fmadd_pd(a2, b2, c01);
 
         //else if(ai == 0 && bi == 1){
 //        a1 = _mm256_broadcast_sd(A + 0*lda + p);
         b1 = _mm256_loadu_pd(B + p*lda + 1*8);//4 8float
         b2 = _mm256_loadu_pd(B + p*lda + 4 + 1*8);//4 8float
 //        a = _mm256_broadcast_sd(A + 0*lda + p);
-        c02 = _mm256_fmadd_pd(a, b1, c02);
-        c03 = _mm256_fmadd_pd(a, b2, c03);
+        c02 = _mm256_fmadd_pd(a1, b1, c02);
+        c03 = _mm256_fmadd_pd(a2, b2, c03);
 
         //else if(ai == 1 && bi == 0){
         b1 = _mm256_loadu_pd(B + p*lda + 0*8); //4 8float
         b2 = _mm256_loadu_pd(B + p*lda + 4 + 0*8);//4 8float
-        a = _mm256_broadcast_sd(A + 1*lda + p);
+        a1 = _mm256_broadcast_sd(A + 1*lda + p);
+        a2 = a1;
 //        a2 = _mm256_broadcast_sd(&A[1*lda+p]);
-        c10 = _mm256_fmadd_pd(a, b1, c10);
-        c11 = _mm256_fmadd_pd(a, b2, c11);
+        c10 = _mm256_fmadd_pd(a1, b1, c10);
+        c11 = _mm256_fmadd_pd(a2, b2, c11);
 
 
         //else if(ai == 1 && bi == 1){
@@ -100,16 +102,17 @@ static inline void do_block_3x16(int lda, int M, int N, int K, double * restrict
         b2 = _mm256_loadu_pd(B + p*lda + 4 + 1*8);//4 8float
 //        a = _mm256_broadcast_sd(A + 1*lda + p);
 //        a2 = _mm256_broadcast_sd(&A[1*lda+p]);
-        c12 = _mm256_fmadd_pd(a, b1, c12);
-        c13 = _mm256_fmadd_pd(a, b2, c13);
+        c12 = _mm256_fmadd_pd(a1, b1, c12);
+        c13 = _mm256_fmadd_pd(a2, b2, c13);
 
         //else if(ai == 2 && bi == 0){
         b1 = _mm256_loadu_pd(B + p*lda + 0*8);//4 8float
         b2 = _mm256_loadu_pd(B + p*lda + 4 + 0*8);//4 8float
-        a = _mm256_broadcast_sd(A + 2*lda + p);
+        a1 = _mm256_broadcast_sd(A + 2*lda + p);
+        a2 = a1;
 //        a2 = _mm256_broadcast_sd(&A[2*lda+p]);
-        c20 = _mm256_fmadd_pd(a, b1, c20);
-        c21 = _mm256_fmadd_pd(a, b2, c21);
+        c20 = _mm256_fmadd_pd(a1, b1, c20);
+        c21 = _mm256_fmadd_pd(a2, b2, c21);
 
 
         //else if(ai == 2 && bi == 1){
@@ -117,8 +120,8 @@ static inline void do_block_3x16(int lda, int M, int N, int K, double * restrict
         b2 = _mm256_loadu_pd(B + p*lda + 4 + 1*8);//4 8float
 //        a1 = _mm256_broadcast_sd(&A[2*lda+p]);
 //        a = _mm256_broadcast_sd(A + 2*lda + p);
-        c22 = _mm256_fmadd_pd(a, b1, c22);
-        c23 = _mm256_fmadd_pd(a, b2, c23);
+        c22 = _mm256_fmadd_pd(a1, b1, c22);
+        c23 = _mm256_fmadd_pd(a2, b2, c23);
 
 
         // if no enough A, then less A is needed;
