@@ -1,4 +1,7 @@
 
+//#pragma GCC push_options
+//#pragma GCC optimize("unroll-loops")
+
 #include <immintrin.h>
 //#include <x86intrin.h>
 #include <avx2intrin.h>
@@ -15,6 +18,7 @@ const char* dgemm_desc = "Simple blocked dgemm.";
 
 
 #ifdef IKJ
+//__attribute__((optimize("unroll-loops")))
 static inline void do_block_naive(int lda, int M, int N, int K, double* restrict A, double* restrict B, double* restrict C) {
     for (int i = 0; i < M; ++i)
         for (int k = 0; k < K; ++k) {
@@ -25,6 +29,7 @@ static inline void do_block_naive(int lda, int M, int N, int K, double* restrict
         }
 }
 #else
+//__attribute__((optimize("unroll-loops")))
 static inline void do_block_naive(int lda, int M, int N, int K, double* restrict A, double* restrict B, double* restrict C) {
     /* For each row i of A */
     for (int i = 0; i < M; ++i)
@@ -43,6 +48,7 @@ static inline void do_block_naive(int lda, int M, int N, int K, double* restrict
 
 
 // C[3x16] = A[3xBLOCK_SIZE1] x B[BLOCK_SIZE1x16]
+//__attribute__((optimize("unroll-loops")))
 static inline void do_block_3x16(int lda, int M, int N, int K, double * restrict A, double * restrict B, double * restrict C) {
     register __m256d c00,c01,c02,c03;
     register __m256d c10,c11,c12,c13;
@@ -76,7 +82,7 @@ static inline void do_block_3x16(int lda, int M, int N, int K, double * restrict
 //        a1 = _mm256_broadcast_sd(A + 0*lda + p);
         b1 = _mm256_loadu_pd(B + p*lda + 1*8);//4 8float
         b2 = _mm256_loadu_pd(B + p*lda + 4 + 1*8);//4 8float
-        a = _mm256_broadcast_sd(A + 0*lda + p);
+//        a = _mm256_broadcast_sd(A + 0*lda + p);
         c02 = _mm256_fmadd_pd(a, b1, c02);
         c03 = _mm256_fmadd_pd(a, b2, c03);
 
@@ -92,7 +98,7 @@ static inline void do_block_3x16(int lda, int M, int N, int K, double * restrict
         //else if(ai == 1 && bi == 1){
         b1 = _mm256_loadu_pd(B + p*lda + 1*8);//4 8float
         b2 = _mm256_loadu_pd(B + p*lda + 4 + 1*8);//4 8float
-        a = _mm256_broadcast_sd(A + 1*lda + p);
+//        a = _mm256_broadcast_sd(A + 1*lda + p);
 //        a2 = _mm256_broadcast_sd(&A[1*lda+p]);
         c12 = _mm256_fmadd_pd(a, b1, c12);
         c13 = _mm256_fmadd_pd(a, b2, c13);
@@ -110,7 +116,7 @@ static inline void do_block_3x16(int lda, int M, int N, int K, double * restrict
         b1 = _mm256_loadu_pd(B + p*lda + 1*8);//4 8float
         b2 = _mm256_loadu_pd(B + p*lda + 4 + 1*8);//4 8float
 //        a1 = _mm256_broadcast_sd(&A[2*lda+p]);
-        a = _mm256_broadcast_sd(A + 2*lda + p);
+//        a = _mm256_broadcast_sd(A + 2*lda + p);
         c22 = _mm256_fmadd_pd(a, b1, c22);
         c23 = _mm256_fmadd_pd(a, b2, c23);
 
