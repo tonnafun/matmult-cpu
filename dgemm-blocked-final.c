@@ -26,7 +26,7 @@ static inline void do_block_naive(int lda, int M, int N, int K, double* restrict
 
 
 // C[3x16] = A[3xBLOCK_SIZE1] x B[BLOCK_SIZE1x16]
-static inline void do_block_3x16(int lda, int M, int K, double * restrict A, double * restrict B, double * restrict C) {
+static inline void do_block_3x16(int lda, int M, int N, int K, double * restrict A, double * restrict B, double * restrict C) {
     register __m256d c00,c01,c02,c03;
     register __m256d c10,c11,c12,c13;
     register __m256d c20,c21,c22,c23;
@@ -171,6 +171,6 @@ static inline void do_block2(int lda, int M, int N, int K, double * restrict A, 
             }
 }
 
-void square_dgemm(int lda, double * restrict A, double * restrict B, double * restric C) {
+void square_dgemm(int lda, double * restrict A, double * restrict B, double * restrict C) {
     do_block1(lda, lda, lda, lda, A, B, C);
 }
