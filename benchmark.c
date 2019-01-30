@@ -14,9 +14,9 @@
 #include <math.h>   // For: fabs
 
 #ifdef USE_MKL
-#include "mkl.h"
+  #include "mkl.h"
 #else
-#include "cblas.h"
+  #include "cblas.h"
 #endif
 
 void cmdLine(int argc, char *argv[], int* n, int* noCheck);

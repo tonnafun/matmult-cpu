@@ -6,12 +6,22 @@ BANG = $(shell hostname | grep ccom-bang | wc -c)
 BANG-COMPUTE = $(shell hostname | grep compute | wc -c)
 STAMPEDE = $(shell hostname | grep stampede | wc -c)
 AMAZON = $(shell hostname | grep 'ip-' | wc -c)
+JASONMAC = $(shell hostname | grep 'Mac' | wc -c)
 
+ifneq ($(JASONMAC), 0)
+#On OS X
+CFLAGS += -I/usr/local/opt/openblas/include
+LDLIBS += -lblas
+CC = gcc
+atlas := 1
+multi := 0
+#NO_BLAS = 1
+else
 ifneq ($(STAMPEDE), 0)
 multi := 1
 NO_BLAS = 0
 # PUB = /home1/00660/tg458182/cse262-wi15
-include $(PUB)/Arch/arch.intel-mkl
+#include $(PUB)/Arch/arch.intel-mkl
 else
 ifneq ($(BANG), 0)
 atlas := 1
@@ -35,6 +45,15 @@ endif
 endif
 endif
 endif
+endif
+
+# Added by Zhen Liang
+# Additional Flags
+# CFLAGS += -mtune=core2
+CFLAGS += -march=native
+CFLAGS += -ftree-vectorize
+CFLAGS += -funroll-loops
+CFLAG += -ffast-math
 
 #WARNINGS += -Wall -pedantic
 WARNINGS += -w -pedantic
@@ -68,14 +87,16 @@ OPTIMIZATION = $(MY_OPT)
 
 targets = benchmark-naive \
 			benchmark-blocked \
-			benchmark-blocked-naive \
-			benchmark-blas
+			benchmark-blocked-final \
+			benchmark-blocked-naive
+#			benchmark-blas
 
 objects = benchmark.o \
 			dgemm-naive.o \
 			dgemm-blocked.o \
-			dgemm-blocked-naive.o \
-			dgemm-blas.o
+			dgemm-blocked-final.o \
+			dgemm-blocked-naive.o
+#			dgemm-blas.o
 
 UTIL   = wall_time.o cmdLine.o
 
@@ -91,11 +112,14 @@ benchmark-naive : benchmark.o dgemm-naive.o  $(UTIL)
 benchmark-blocked : benchmark.o dgemm-blocked.o $(UTIL)
 	$(CC) -o $@ $^ $(LDLIBS) -pg -mavx -mavx2
 
+benchmark-blocked-final : benchmark.o dgemm-blocked-final.o $(UTIL)
+	$(CC) -o $@ $^ $(LDLIBS) -pg -mavx -mavx2
+
 benchmark-blocked-naive : benchmark.o dgemm-blocked-naive.o $(UTIL)
 	$(CC) -o $@ $^ $(LDLIBS) -pg -mavx -mavx2
 
-benchmark-blas : benchmark.o dgemm-blas.o $(UTIL) 
-	$(CC) -o $@ $^ $(LDLIBS) -mavx -mavx2 -mfma
+#benchmark-blas : benchmark.o dgemm-blas.o $(UTIL)
+#	$(CC) -o $@ $^ $(LDLIBS) -mavx -mavx2 -mfma
 
 %.o : %.c
 	$(CC) -c $(CFLAGS) -O3 $<

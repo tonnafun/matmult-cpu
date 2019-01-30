@@ -10,6 +10,7 @@
 //#include <x86intrin.h>
 #include <avx2intrin.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 const char* dgemm_desc = "Simple blocked dgemm.";
 
@@ -67,6 +68,7 @@ static inline void do_block2 (int lda, int K, double* restrict A, double* restri
 {
   register __m256d c00_c01_c02_c03 = _mm256_loadu_pd(C);
   register __m256d c10_c11_c12_c13 = _mm256_loadu_pd(C+lda);
+
   for (int kk = 0; kk < K; kk++){
     register __m256d a0x = _mm256_broadcast_sd(A + kk + 0*lda);
     register __m256d a1x = _mm256_broadcast_sd(A + kk + 1*lda);
@@ -77,6 +79,7 @@ static inline void do_block2 (int lda, int K, double* restrict A, double* restri
   }
   _mm256_storeu_pd(C, c00_c01_c02_c03);
   _mm256_storeu_pd(C+lda, c10_c11_c12_c13);
+
 }
 
 

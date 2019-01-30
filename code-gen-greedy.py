@@ -7,6 +7,10 @@ with open('dgemm-blocked.c', 'r') as f:
 best_ratio = 0
 config = [0, 0]
 
+BLOCK_SIZE1_LINE_N = 26
+BLOCK_SIZE2_LINE_N = 27
+BLOCK_SIZE3_LINE_N = -1
+
 # for BLOCK_SIZE1 in range(20, 41):
 #     for BLOCK_SIZE2 in range(90, 201):
 for BLOCK_SIZE2 in range(90, 201):
@@ -40,4 +44,4 @@ for BLOCK_SIZE2 in range(90, 201):
         print('SIZE1 = %d, SIZE2 = %d, Ratio = %f' % (BLOCK_SIZE1, BLOCK_SIZE2, ratio))
 
 
-print ('Best Ratio = %f, Config = [%d, %d]' % (best_ratio, config[0], config[1]))
+print('Best Ratio = %f, Config = [%d, %d]' % (best_ratio, config[0], config[1]))
