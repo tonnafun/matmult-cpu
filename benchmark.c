@@ -14,13 +14,13 @@
 #include <math.h>   // For: fabs
 
 #ifdef USE_MKL
-  #include "mkl.h"
+#include "mkl.h"
 #else
-  #include "cblas.h"
+#include "cblas.h"
 #endif
 
 void cmdLine(int argc, char *argv[], int* n, int* noCheck);
-/* reference_dgemm wraps a call to the BLAS-3 routine DGEMM, via the standard FORTRAN interface - hence the reference semantics. */ 
+/* reference_dgemm wraps a call to the BLAS-3 routine DGEMM, via the standard FORTRAN interface - hence the reference semantics. */
 void reference_dgemm (int N, double Alpha, double* A, double* B, double* C)
 {
   const double Beta  = 1.0;
@@ -31,7 +31,7 @@ void reference_dgemm (int N, double Alpha, double* A, double* B, double* C)
   /* Don't change this call */
   cblas_dgemm( CblasRowMajor, transA, transB, M, N, K,
                Alpha, A, LDA, B, LDB, Beta, C, LDC );
-}   
+}
 
 /* Your function must have the following signature: */
 extern const char* dgemm_desc;
@@ -55,7 +55,7 @@ void fill (double* p, int n)
   long int RM     =  Rmax_2 + 1;
   for (int i = 0; i < n; ++i){
     long int r = random();   // Uniformly distributed ints over [0,RAND_MAX]
-                             // Typical value of RAND_MAX: 2^31 - 1
+    // Typical value of RAND_MAX: 2^31 - 1
     long int R = r - RM;
     p[i] = (double) R / (double) RM; // Uniformly distributed over [-1, 1]
   }
@@ -80,17 +80,16 @@ int main (int argc, char **argv)
 
   /* Test sizes should highlight performance dips at multiples of certain powers-of-two */
 
-  int test_sizes[] = {511,512,513,543,544,545,575};
+  int test_sizes[] = {32, 37, 42, 47, 52, 57, 62, 64, 67, 72, 77, 82, 87, 92, 97, 102, 107, 112, 117, 122, 127, 128, 132, 137, 142, 147, 152, 157, 162, 167, 172, 177, 182, 187, 192, 197, 202, 207, 212, 217, 222, 227, 232, 237, 242, 247, 252, 256, 257, 262, 267, 272, 277, 282, 287, 292, 297, 302, 307, 312, 317, 322, 327, 332, 337, 342, 347, 352, 357, 362, 367, 372, 377, 382, 387, 392, 397, 402, 407, 412, 417, 422, 427, 432, 437, 442, 447, 452, 457, 462, 467, 472, 477, 482, 487, 492, 497, 502, 507, 511, 512, 513, 517, 522, 527, 532, 537, 542, 547, 552, 557, 562, 567, 572, 577, 582, 587, 592, 597, 602, 607, 612, 617, 622, 627, 632, 637, 642, 647, 652, 657, 662, 667, 672, 677, 682, 687, 692, 697, 702, 707, 712, 717, 722, 727, 732, 737, 742, 747, 752, 757, 762, 767, 772, 777, 782, 787, 792, 797, 802, 807, 812, 817, 822, 827, 832, 837, 842, 847, 852, 857, 862, 867, 872, 877, 882, 887, 892, 897, 902, 907, 912, 917, 922, 927, 932, 937, 942, 947, 952, 957, 962, 967, 972, 977, 982, 987, 992, 997, 1002, 1007, 1012, 1017, 1022, 1023, 1024, 1025};
 
   /* Multiples-of-32, +/- 1. Currently uncommented. */
-/*  {31,32,33,63,64,65,95,96,97,127,128,129,159,160,161,191,192,193,223,224,225,255,256,257,287,288,289,319,320,321,351,352,353,383,384,385,415,416,417,447,448,449,479,480,481,511,512,513,543,544,545,575,576,577,607,608,609,639,640,641,671,672,673,703,704,705,735,736,737,767,768,769,799,800,801,831,832,833,863,864,865,895,896,897,927,928,929,959,960,961,991,992,993,1023,1024,1025};  */
   /* Multiples-of-32, +/- 1. Currently uncommented. Large  only */
 //  {511,512,513,543,544,545,575,576,577,607,608,609,639,640,641,671,672,673,703,704,705,735,736,737,767,768,769,799,800,801,831,832,833,863,864,865,895,896,897,927,928,929,959,960,961,991,992,993,1023,1024,1025};
 /*
   {31,32,33,63,64,65,95,96,97,127,128,129,159,160,161,191,192,193,223,224,225,255,256,257,287,288,289,319,320,321,351,352,353,383,384,385,415,416,417,447,448,449,479,480,481,511,512,513,543,544,545,575,576,577,607,608,609,639,640,641,671,672,673,703,704,705,735,736,737,767,768,769};
   */
 
-  /* A representative subset of the first list. Currently commented. */ 
+  /* A representative subset of the first list. Currently commented. */
   /*
   { 31, 32, 96, 97, 127, 128, 129, 191, 192, 229, 255, 256, 257,
     319, 320, 321, 417, 479, 480, 511, 512, 639, 640, 767, 768, 769 };
@@ -105,25 +104,25 @@ int main (int argc, char **argv)
   int nmax = test_sizes[nsizes-1];
 
   if (n0){
-      nmax = n0;
-      test_sizes[0] = n0;
-    }
+    nmax = n0;
+    test_sizes[0] = n0;
+  }
 
   /* allocate memory for all problems */
   double* buf = NULL;
   buf = (double*) malloc (3 * nmax * nmax * sizeof(double));
   if (buf == NULL){
     if (n0){
-        Fail ("Failed to allocate matrix");
+      Fail ("Failed to allocate matrix");
     }
     else{
-        Fail ("Failed to allocate largest matrix");
+      Fail ("Failed to allocate largest matrix");
     }
   }
 
   int sizes = sizeof(test_sizes)/sizeof(test_sizes[0]);
   if (n0)
-      sizes = 1;
+    sizes = 1;
 
   /* For each test size */
   for (int isize = 0; isize < sizes; ++isize)
@@ -144,7 +143,7 @@ int main (int argc, char **argv)
     /* Time a "sufficiently long" sequence of calls to reduce noise */
     double Gflops_s, seconds = -1.0;
     double timeout = 0.1; // "sufficiently long" := at least 1/10 second.
-    for (int n_iterations = 1; seconds < timeout; n_iterations *= 2) 
+    for (int n_iterations = 1; seconds < timeout; n_iterations *= 2)
     {
       /* Warm-up */
       square_dgemm (n, A, B, C);
@@ -152,7 +151,7 @@ int main (int argc, char **argv)
       /* Benchmark n_iterations runs of square_dgemm */
       seconds = -wall_time();
       for (int it = 0; it < n_iterations; ++it)
-	square_dgemm (n, A, B, C);
+        square_dgemm (n, A, B, C);
       seconds += wall_time();
 
       /*  compute Mflop/s rate */
@@ -161,29 +160,29 @@ int main (int argc, char **argv)
     printf ("Size: %d\tGflop/s: %.3g\n", n, Gflops_s);
 
     if (!noCheck){
-        /* Ensure that error does not exceed the theoretical error bound. */
+      /* Ensure that error does not exceed the theoretical error bound. */
 
-        /* C := A * B, computed with square_dgemm */
-        memset (C, 0, n * n * sizeof(double));
-        square_dgemm (n, A, B, C);
+      /* C := A * B, computed with square_dgemm */
+      memset (C, 0, n * n * sizeof(double));
+      square_dgemm (n, A, B, C);
 
-        /* Do not explicitly check that A and B were unmodified on square_dgemm exit
-        *  - if they were, the following will most likely detect it:   
-        * C := C - A * B, computed with reference_dgemm */
-        reference_dgemm(n, -1., A, B, C);
+      /* Do not explicitly check that A and B were unmodified on square_dgemm exit
+      *  - if they were, the following will most likely detect it:
+      * C := C - A * B, computed with reference_dgemm */
+      reference_dgemm(n, -1., A, B, C);
 
-        /* A := |A|, B := |B|, C := |C| */
-        absolute_value (A, n * n);
-        absolute_value (B, n * n);
-        absolute_value (C, n * n);
+      /* A := |A|, B := |B|, C := |C| */
+      absolute_value (A, n * n);
+      absolute_value (B, n * n);
+      absolute_value (C, n * n);
 
-        /* C := |C| - 3 * e_mach * n * |A| * |B|, computed with reference_dgemm */ 
-        reference_dgemm (n, -3.*DBL_EPSILON*n, A, B, C);
+      /* C := |C| - 3 * e_mach * n * |A| * |B|, computed with reference_dgemm */
+      reference_dgemm (n, -3.*DBL_EPSILON*n, A, B, C);
 
-        /* If any element in C is positive, then something went wrong in square_dgemm */
-        for (int i = 0; i < n * n; ++i)
+      /* If any element in C is positive, then something went wrong in square_dgemm */
+      for (int i = 0; i < n * n; ++i)
         if (C[i] > 0)
-            Fail("*** FAILURE *** Error in matrix multiply exceeds componentwise error bounds.\n" );
+          Fail("*** FAILURE *** Error in matrix multiply exceeds componentwise error bounds.\n" );
     }
   }
 
