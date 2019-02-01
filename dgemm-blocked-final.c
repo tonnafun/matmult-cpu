@@ -179,10 +179,29 @@ static inline void block_square_multilv1(int lda, int M, int N, int K, double* r
                 memcpy(C_padded + ii * BLOCK_SIZE_N, C + i * lda + j + ii * lda, sizeof(double) * curN);
 
             if (curM == BLOCK_SIZE_M && curN == BLOCK_SIZE_N) {
+//                for (int k = 0; k < K; k += BLOCK_SIZE_K) {
+//                    int curK = min (BLOCK_SIZE_K, K - k);
+//                    do_block3_16(lda, curM, curN, curK, A + i * lda + k, B + k * lda + j, C + i * lda + j);
+//                }
+
                 for (int k = 0; k < K; k += BLOCK_SIZE_K) {
                     int curK = min (BLOCK_SIZE_K, K - k);
-                    do_block3_16(lda, curM, curN, curK, A + i * lda + k, B + k * lda + j, C + i * lda + j);
+
+                    double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) A_padded[BLOCK_SIZE_M * curK];
+//                    memset(A_padded, 0, sizeof(double) * BLOCK_SIZE_M * curK);
+                    for (int ii = 0; ii < curM; ++ii)
+                        for (int kk = 0; kk < curK; ++kk)
+                            A_padded[ii * curK + kk] = A[i * lda + k + ii * lda + kk];
+
+                    double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) B_padded[curK * BLOCK_SIZE_N];
+//                    memset(B_padded, 0, sizeof(double) * curK * BLOCK_SIZE_N);
+                    for (int kk = 0; kk < curK; ++kk)
+                        for (int jj = 0; jj < curN; ++jj)
+                            B_padded[kk * BLOCK_SIZE_N + jj] = B[k * lda + j + kk * lda + jj];
+
+                    avx_kernel(BLOCK_SIZE_M, BLOCK_SIZE_N, curK, A_padded, B_padded, C_padded);
                 }
+
             } else {
 //                double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) C_padded[BLOCK_SIZE_M * BLOCK_SIZE_N];
 //
