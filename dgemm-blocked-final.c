@@ -84,7 +84,7 @@ static inline void block_square_multilv0(int lda, int M, int N, int K, double* r
                 int curK = BLOCK_SIZE1;
 
 //                avx_kernel(curM, curN, curK, A + i * K + k, B + k * N + j, C + i * N + j);
-                avx_kernel(curM, curN, curK, A + i*lda + k, B + k*lda + j, C + i * N + j);
+                avx_kernel(lda, curM, curN, curK, A + i*lda + k, B + k*lda + j, C + i * N + j);
 
 //                int curM = min (REGA, M-i);
 //                int curN = min (REGB * 4, N-j);
@@ -166,9 +166,9 @@ static inline void block_square_multilv1(int lda, int M, int N, int K, double* r
 //                for (int kk = 0; kk < curK; ++kk)
 //                    memcpy(B_padded + kk * BLOCK_SIZE_N, B + k * lda + j + kk * lda, sizeof(double) * curN);
 
-                for (int kk = 0; kk < curK; ++kk)
-                    for (int jj = 0; jj < curN; ++jj)
-                        B_padded[kk * BLOCK_SIZE_N + jj] = B[k * lda + j + kk * lda + jj];
+//                for (int kk = 0; kk < curK; ++kk)
+//                    for (int jj = 0; jj < curN; ++jj)
+//                        B_padded[kk * BLOCK_SIZE_N + jj] = B[k * lda + j + kk * lda + jj];
 
                 block_square_multilv0(lda, BLOCK_SIZE_M, BLOCK_SIZE_N, BLOCK_SIZE_K, A, B, C_padded);
 
@@ -223,7 +223,7 @@ void square_dgemm (int lda, double* restrict A, double* restrict B, double* rest
 
 
 
-static inline void avx_kernel(int M, int N, int K, double* restrict A, double* restrict B, double* restrict C) {
+static inline void avx_kernel(int lda, int M, int N, int K, double* restrict A, double* restrict B, double* restrict C) {
     register __m256d c00,c01,c02,c03;
     register __m256d c10,c11,c12,c13;
     register __m256d c20,c21,c22,c23;
