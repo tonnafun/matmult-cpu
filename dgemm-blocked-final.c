@@ -181,8 +181,11 @@ static inline void block_square_multilv1(int lda, int M, int N, int K, double* r
                     do_block3_16(lda, curM, curN, curK, A + i * lda + k, B + k * lda + j, C + i * lda + j);
                 }
             } else {
-                do_block(lda, curM, curN, curK, A + i * lda + k, B + k * lda + j, C + i * lda + j);
-
+                for (int k = 0; k < K; k += BLOCK_SIZE_K) {
+                    int curK = min (BLOCK_SIZE_K, K - k);
+                    do_block(lda, curM, curN, curK, A + i * lda + k, B + k * lda + j, C + i * lda + j);
+                }
+                
 //                double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) C_padded[BLOCK_SIZE_M][BLOCK_SIZE_N];
 //
 //                for (int ii = 0; ii < curM; ++ii)
