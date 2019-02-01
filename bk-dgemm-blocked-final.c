@@ -69,7 +69,7 @@ lv3 cache: 10k+k
 //static inline void do_block3_16(int lda, int M, int N, int K, double* restrict A, double* restrict B, double* restrict C);
 //static inline void do_block2_16(int lda, int M, int N, int K, double* restrict A, double* restrict B, double* restrict C);
 //static inline void do_block1_16(int lda, int M, int N, int K, double* restrict A, double* restrict B, double* restrict C);
-static inline void avx_kernel(int M, int N, int K, double* restrict A, double* restrict B, double* restrict C);
+static inline void avx_kernel(int lda, int M, int N, int K, double* restrict A, double* restrict B, double* restrict C);
 
 
 // M = BLOCK_SIZE_M
@@ -79,6 +79,8 @@ static inline void block_square_multilv0(int lda, int M, int N, int K, double* r
     for (int i = 0; i < M; i += REGA)
         for(int j = 0; j < N; j += REGB * 4)
             for(int k = 0; k < K; k += BLOCK_SIZE1){
+
+                // TODO: Copy and pad A and B
                 int curM = REGA;
                 int curN = REGB * 4;
                 int curK = BLOCK_SIZE1;
