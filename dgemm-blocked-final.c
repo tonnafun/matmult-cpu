@@ -83,7 +83,8 @@ static inline void block_square_multilv0(int lda, int M, int N, int K, double* r
                 int curN = REGB * 4;
                 int curK = BLOCK_SIZE1;
 
-                avx_kernel(curM, curN, curK, A + i * K + k, B + k * N + j, C + i * N + j);
+//                avx_kernel(curM, curN, curK, A + i * K + k, B + k * N + j, C + i * N + j);
+                avx_kernel(curM, curN, curK, A + i*lda + k, B + k*lda + j, C + i * N + j);
 
 //                int curM = min (REGA, M-i);
 //                int curN = min (REGB * 4, N-j);
@@ -127,31 +128,31 @@ static inline void block_square_multilv1(int lda, int M, int N, int K, double* r
             for (int k = 0; k < K; k += BLOCK_SIZE_K) {
                 int curK = min (BLOCK_SIZE_K, K - k);
 
-                double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) A_padded[BLOCK_SIZE_M * BLOCK_SIZE_K];
-                double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) B_padded[BLOCK_SIZE_K * BLOCK_SIZE_N];
+//                double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) A_padded[BLOCK_SIZE_M * BLOCK_SIZE_K];
+//                double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) B_padded[BLOCK_SIZE_K * BLOCK_SIZE_N];
 
-                if (curM == BLOCK_SIZE_M && curK == BLOCK_SIZE_K) {
-                    for (int ii = 0; ii < BLOCK_SIZE_M; ++ii)
-                        for (int kk = 0; kk < BLOCK_SIZE_K; ++kk)
-                            A_padded[ii * BLOCK_SIZE_K + kk] = A[i * lda + k + ii * lda + kk];
-                } else {
-                    memset(A_padded, 0, sizeof(double) * BLOCK_SIZE_M * BLOCK_SIZE_K);
-                    for (int ii = 0; ii < curM; ++ii)
-                        for (int kk = 0; kk < curK; ++kk)
-                            A_padded[ii * BLOCK_SIZE_K + kk] = A[i * lda + k + ii * lda + kk];
-                }
-
-                if (curK == BLOCK_SIZE_K && curN == BLOCK_SIZE_N) {
-                    for (int kk = 0; kk < BLOCK_SIZE_K; ++kk)
-                        for (int jj = 0; jj < BLOCK_SIZE_N; ++jj)
-                            B_padded[kk * BLOCK_SIZE_N + jj] = B[k * lda + j + kk * lda + jj];
-                } else {
-                    memset(B_padded, 0, sizeof(double) * BLOCK_SIZE_K * BLOCK_SIZE_N);
-                    for (int kk = 0; kk < curK; ++kk)
-                        for (int jj = 0; jj < curN; ++jj)
-                            B_padded[kk * BLOCK_SIZE_N + jj] = B[k * lda + j + kk * lda + jj];
-                }
-//                
+//                if (curM == BLOCK_SIZE_M && curK == BLOCK_SIZE_K) {
+//                    for (int ii = 0; ii < BLOCK_SIZE_M; ++ii)
+//                        for (int kk = 0; kk < BLOCK_SIZE_K; ++kk)
+//                            A_padded[ii * BLOCK_SIZE_K + kk] = A[i * lda + k + ii * lda + kk];
+//                } else {
+//                    memset(A_padded, 0, sizeof(double) * BLOCK_SIZE_M * BLOCK_SIZE_K);
+//                    for (int ii = 0; ii < curM; ++ii)
+//                        for (int kk = 0; kk < curK; ++kk)
+//                            A_padded[ii * BLOCK_SIZE_K + kk] = A[i * lda + k + ii * lda + kk];
+//                }
+//
+//                if (curK == BLOCK_SIZE_K && curN == BLOCK_SIZE_N) {
+//                    for (int kk = 0; kk < BLOCK_SIZE_K; ++kk)
+//                        for (int jj = 0; jj < BLOCK_SIZE_N; ++jj)
+//                            B_padded[kk * BLOCK_SIZE_N + jj] = B[k * lda + j + kk * lda + jj];
+//                } else {
+//                    memset(B_padded, 0, sizeof(double) * BLOCK_SIZE_K * BLOCK_SIZE_N);
+//                    for (int kk = 0; kk < curK; ++kk)
+//                        for (int jj = 0; jj < curN; ++jj)
+//                            B_padded[kk * BLOCK_SIZE_N + jj] = B[k * lda + j + kk * lda + jj];
+//                }
+//
 //                memset(A_padded, 0, sizeof(double) * BLOCK_SIZE_M * BLOCK_SIZE_K);
 //                memset(B_padded, 0, sizeof(double) * BLOCK_SIZE_K * BLOCK_SIZE_N);
 
@@ -169,7 +170,7 @@ static inline void block_square_multilv1(int lda, int M, int N, int K, double* r
                     for (int jj = 0; jj < curN; ++jj)
                         B_padded[kk * BLOCK_SIZE_N + jj] = B[k * lda + j + kk * lda + jj];
 
-                block_square_multilv0(lda, BLOCK_SIZE_M, BLOCK_SIZE_N, BLOCK_SIZE_K, A_padded, B_padded, C_padded);
+                block_square_multilv0(lda, BLOCK_SIZE_M, BLOCK_SIZE_N, BLOCK_SIZE_K, A, B, C_padded);
 
             }
 
@@ -244,26 +245,26 @@ static inline void avx_kernel(int M, int N, int K, double* restrict A, double* r
         // register __m256d b1 = _mm256_loadu_pd(&B[p*lda + bi*8]);//4 8float
         // register __m256d b2 = _mm256_loadu_pd(&B[p*lda+4+bi*8]);//4 8float
         //if(ai == 0 && bi == 0){
-        register __m256d a1 = _mm256_broadcast_sd(&A[0 * BLOCK_SIZE_K + p]);
+        register __m256d a1 = _mm256_broadcast_sd(&A[0 * lda + p]);
         //register __m256d a2 = _mm256_broadcast_sd(&A[0*lda+p]);
         // register __m256d a2 = a1;
-        register __m256d b1 = _mm256_loadu_pd(&B[p * BLOCK_SIZE_N + 0*8]);//4 8float
-        register __m256d b2 = _mm256_loadu_pd(&B[p * BLOCK_SIZE_N + 4 + 0*8]);//4 8float
+        register __m256d b1 = _mm256_loadu_pd(&B[p * lda + 0*8]);//4 8float
+        register __m256d b2 = _mm256_loadu_pd(&B[p * lda + 4 + 0*8]);//4 8float
         c00 = _mm256_fmadd_pd(a1,b1,c00);
         c01 = _mm256_fmadd_pd(a1,b2,c01);
 
         //else if(ai == 0 && bi == 1){
         // a1 = _mm256_broadcast_sd(&A[0*lda+p]);
         // a2 = _mm256_broadcast_sd(&A[0*lda+p]);
-        b1 = _mm256_loadu_pd(&B[p * BLOCK_SIZE_N + 1*8]);//4 8float
-        b2 = _mm256_loadu_pd(&B[p * BLOCK_SIZE_N +4+1*8]);//4 8float
+        b1 = _mm256_loadu_pd(&B[p * lda + 1*8]);//4 8float
+        b2 = _mm256_loadu_pd(&B[p * lda +4+1*8]);//4 8float
         c02 = _mm256_fmadd_pd(a1,b1,c02);
         c03 = _mm256_fmadd_pd(a1,b2,c03);
 
         //else if(ai == 1 && bi == 0){
-        b1 = _mm256_loadu_pd(&B[p * BLOCK_SIZE_N + 0*8]);//4 8float
-        b2 = _mm256_loadu_pd(&B[p * BLOCK_SIZE_N +4+0*8]);//4 8float
-        a1 = _mm256_broadcast_sd(&A[1 * BLOCK_SIZE_K +p]);
+        b1 = _mm256_loadu_pd(&B[p * lda + 0*8]);//4 8float
+        b2 = _mm256_loadu_pd(&B[p * lda +4+0*8]);//4 8float
+        a1 = _mm256_broadcast_sd(&A[1 * lda +p]);
         // a2 = a1;
         // a2 = _mm256_broadcast_sd(&A[1*lda+p]);
         c10 = _mm256_fmadd_pd(a1,b1,c10);
@@ -271,17 +272,17 @@ static inline void avx_kernel(int M, int N, int K, double* restrict A, double* r
 
 
         //else if(ai == 1 && bi == 1){
-        b1 = _mm256_loadu_pd(&B[p * BLOCK_SIZE_N + 1*8]);//4 8float
-        b2 = _mm256_loadu_pd(&B[p * BLOCK_SIZE_N +4+1*8]);//4 8float
+        b1 = _mm256_loadu_pd(&B[p * lda + 1*8]);//4 8float
+        b2 = _mm256_loadu_pd(&B[p * lda +4+1*8]);//4 8float
         // a1 = _mm256_broadcast_sd(&A[1*lda+p]);
         // a2 = _mm256_broadcast_sd(&A[1*lda+p]);
         c12 = _mm256_fmadd_pd(a1,b1,c12);
         c13 = _mm256_fmadd_pd(a1,b2,c13);
 
         //else if(ai == 2 && bi == 0){
-        b1 = _mm256_loadu_pd(&B[p * BLOCK_SIZE_N + 0*8]);//4 8float
-        b2 = _mm256_loadu_pd(&B[p * BLOCK_SIZE_N +4+0*8]);//4 8float
-        a1 = _mm256_broadcast_sd(&A[2*BLOCK_SIZE_K +p]);
+        b1 = _mm256_loadu_pd(&B[p * lda + 0*8]);//4 8float
+        b2 = _mm256_loadu_pd(&B[p * lda +4+0*8]);//4 8float
+        a1 = _mm256_broadcast_sd(&A[2* lda +p]);
         // a2 = a1;
         // a2 = _mm256_broadcast_sd(&A[2*lda+p]);
         c20 = _mm256_fmadd_pd(a1,b1,c20);
@@ -289,8 +290,8 @@ static inline void avx_kernel(int M, int N, int K, double* restrict A, double* r
 
 
         //else if(ai == 2 && bi == 1){
-        b1 = _mm256_loadu_pd(&B[p * BLOCK_SIZE_N + 1*8]);//4 8float
-        b2 = _mm256_loadu_pd(&B[p * BLOCK_SIZE_N +4+1*8]);//4 8float
+        b1 = _mm256_loadu_pd(&B[p * lda + 1*8]);//4 8float
+        b2 = _mm256_loadu_pd(&B[p * lda +4+1*8]);//4 8float
         // a1 = _mm256_broadcast_sd(&A[2*lda+p]);
         // a2 = _mm256_broadcast_sd(&A[2*lda+p]);
         c22 = _mm256_fmadd_pd(a1,b1,c22);
