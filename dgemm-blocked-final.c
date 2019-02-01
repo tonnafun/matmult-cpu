@@ -74,20 +74,20 @@ static void do_block1_16(int lda, int M, int N, int K, double* restrict A, doubl
 
 
 
-static inline void block_square_multilv1(int lda, int M, int N, int K, double* restrict A, double* restrict B, double* restrict C){ // 3*16
+static inline void block_square_multilv0(int lda, int M, int N, int K, double* restrict A, double* restrict B, double* restrict C) {
     for (int i = 0; i < M; i += REGA)
         for(int j = 0; j < N; j += REGB*4)
             for(int k = 0; k < K; k += BLOCK_SIZE1){
                 int curM = min (REGA, M-i);
-                int curN = min (REGB*4, N-j);
+                int curN = min (REGB * 4, N-j);
                 int curK = min (BLOCK_SIZE1, K-k);
                 // int realloada = min(3, lda-N);
                 // int realloadb = min(16, lda-M);
-                if(curM == 3 && curN == REGB*4)
+                if(curM == 3 && curN == REGB * 4)
                     do_block3_16(lda, curM, curN, curK, A + i*lda + k, B + k*lda + j, C + i*lda + j);
-                else if(curN == 2 && curN == REGB*4)
+                else if(curN == 2 && curN == REGB * 4)
                     do_block2_16(lda, curM, curN, curK, A + i*lda + k, B + k*lda + j, C + i*lda + j);
-                else if(curN == 1 && curN == REGB*4)
+                else if(curN == 1 && curN == REGB * 4)
                     do_block1_16(lda, curM, curN, curK, A + i*lda + k, B + k*lda + j, C + i*lda + j);
                 else// not enough B
                     do_block(lda, curM, curN, curK, A + i*lda + k, B + k*lda + j, C + i*lda + j);
@@ -95,6 +95,24 @@ static inline void block_square_multilv1(int lda, int M, int N, int K, double* r
             }
 }
 
+#define BLOCK_SIZE_M 24
+#define BLOCK_SIZE_N 32
+#define BLOCK_SIZE_K 32
+
+static inline void block_square_multilv1(int lda, int M, int N, int K, double* restrict A, double* restrict B, double* restrict C){ // 3*16
+    for (int i = 0; i < M; i += BLOCK_SIZE_M)
+        for(int j = 0; j < N; j += BLOCK_SIZE_N)
+            for(int k = 0; k < K; k += BLOCK_SIZE_K){
+                int curM = min (BLOCK_SIZE_M, M-i);
+                int curN = min (BLOCK_SIZE_N, N-j);
+                int curK = min (BLOCK_SIZE_K, K-k);
+
+                block_square_multilv0(lda, curM, curN, curK, A + i*lda + k, B + k*lda + j, C + i*lda + j);
+
+            }
+}
+
+// 96 x 96
 static inline void block_square_multilv2(int lda, int M, int N, int K, double* restrict A, double* restrict B, double* restrict C){
     for (int i = 0; i < M; i += BLOCK_SIZE2)
         for(int j = 0; j < N; j += BLOCK_SIZE2)
