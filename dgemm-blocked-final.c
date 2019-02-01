@@ -92,7 +92,7 @@ static inline void block_square_multilv0(int lda, int M, int N, int K, double* r
                 // int realloada = min(3, lda-N);
                 // int realloadb = min(16, lda-M);
 //                if(curM == 3 && curN == REGB * 4)
-                    do_block3_16(lda, curM, curN, curK, A + i*lda + k, B + k*lda + j, C + i*lda + j);
+//                    do_block3_16(lda, curM, curN, curK, A + i*lda + k, B + k*lda + j, C + i*lda + j);
 //                else if(curM == 2 && curN == REGB * 4)
 //                    do_block2_16(lda, curM, curN, curK, A + i*lda + k, B + k*lda + j, C + i*lda + j);
 //                else if(curM == 1 && curN == REGB * 4)
@@ -103,10 +103,11 @@ static inline void block_square_multilv0(int lda, int M, int N, int K, double* r
             }
 }
 
-#define BLOCK_SIZE_M 24
+#define BLOCK_SIZE_M 48
 #define BLOCK_SIZE_N 32
 #define BLOCK_SIZE_K 32
 
+__attribute__((optimize("unroll-loops")))
 static inline void block_square_multilv1(int lda, int M, int N, int K, double* restrict A, double* restrict B, double* restrict C){ // 3*16
     for (int i = 0; i < M; i += BLOCK_SIZE_M)
         for(int j = 0; j < N; j += BLOCK_SIZE_N) {
