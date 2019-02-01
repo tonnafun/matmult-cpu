@@ -67,10 +67,10 @@ static void do_block (int lda, int M, int N, int K, double* restrict A, double* 
 //for block1, M = 3, N = 16, which means all c00-c13 are stored in C
 //K changeable
 __attribute__((optimize("unroll-loops")))
-static void do_block3_16(int lda, int M, int N, int K, double* restrict A, double* restrict B, double* restrict C);
-static void do_block2_16(int lda, int M, int N, int K, double* restrict A, double* restrict B, double* restrict C);
-static void do_block1_16(int lda, int M, int N, int K, double* restrict A, double* restrict B, double* restrict C);
-
+static inline void do_block3_16(int lda, int M, int N, int K, double* restrict A, double* restrict B, double* restrict C);
+static inline void do_block2_16(int lda, int M, int N, int K, double* restrict A, double* restrict B, double* restrict C);
+static inline void do_block1_16(int lda, int M, int N, int K, double* restrict A, double* restrict B, double* restrict C);
+static inline void avx_kernel(int M, int N, int K, double* restrict A, double* restrict B, double* restrict C);
 
 
 // M = BLOCK_SIZE_M
@@ -117,7 +117,7 @@ static inline void block_square_multilv1(int lda, int M, int N, int K, double* r
             double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) C_padded[BLOCK_SIZE_M * BLOCK_SIZE_N];
             memset(C_padded, 0, sizeof(double) * BLOCK_SIZE_M * BLOCK_SIZE_N);
             for (int ii = 0; ii < curM; ++ii)
-                memcpy(C_padded + ii * BLOCK_SIZE_N, C + ii * lda, sizeof(double) * curN);
+                memcpy(C_padded + ii * BLOCK_SIZE_N, C + i * lda + j + ii * lda, sizeof(double) * curN);
 
             // double __attribute__((align (32))) A_aligned[lda * lda];
             // double __attribute__((align (32))) B_aligned[lda * lda];
@@ -142,17 +142,17 @@ static inline void block_square_multilv1(int lda, int M, int N, int K, double* r
                 memset(B_padded, 0, sizeof(double) * BLOCK_SIZE_K * BLOCK_SIZE_N);
 
                 for (int ii = 0; ii < curM; ++ii)
-                    memcpy(A_padded + ii * BLOCK_SIZE_K, A + ii * lda, sizeof(double) * curK);
+                    memcpy(A_padded + ii * BLOCK_SIZE_K, A + i * lda + k + ii * lda, sizeof(double) * curK);
 
                 for (int kk = 0; kk < curK; ++kk)
-                    memcpy(B_padded + kk * BLOCK_SIZE_N, B + kk * lda, sizeof(double) * curN);
+                    memcpy(B_padded + kk * BLOCK_SIZE_N, B + k * lda + j + kk * lda, sizeof(double) * curN);
 
                 block_square_multilv0(lda, BLOCK_SIZE_M, BLOCK_SIZE_N, BLOCK_SIZE_K, A_padded, B_padded, C_padded);
 
             }
 
             for (int ii = 0; ii < curM; ++ii)
-                memcpy(C + ii * lda, C_padded + ii * BLOCK_SIZE_N, sizeof(double) * curN);
+                memcpy(C + i * lda + j + ii * lda, C_padded + ii * BLOCK_SIZE_N, sizeof(double) * curN);
         }
 }
 
@@ -188,7 +188,7 @@ void square_dgemm (int lda, double* restrict A, double* restrict B, double* rest
 //    memcpy(B_aligned, B, lda * lda * 8);
     // memcpy(C_aligned, C, lda * lda * 8);
 
-    block_square_multilv2(lda, lda, lda, lda, A_aligned, B_aligned, C);
+    block_square_multilv2(lda, lda, lda, lda, A, B, C);
     // memcpy(C, C_aligned, lda * lda * 8);
 //    free(A_aligned);
 //    free(B_aligned);
