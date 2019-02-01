@@ -116,23 +116,14 @@ static inline void block_square_multilv1(int lda, int M, int N, int K, double* r
             int curN = min (BLOCK_SIZE_N, N - j);
 
             double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) C_padded[BLOCK_SIZE_M * BLOCK_SIZE_N];
-            memset(C_padded, 0, sizeof(double) * BLOCK_SIZE_M * BLOCK_SIZE_N);
+//            memset(C_padded, 0, sizeof(double) * BLOCK_SIZE_M * BLOCK_SIZE_N);
+
+//            for (int ii = 0; ii < curM; ++ii)
+//                memcpy(C_padded + ii * BLOCK_SIZE_N, C + i * lda + j + ii * lda, sizeof(double) * curN);
+
             for (int ii = 0; ii < curM; ++ii)
-                memcpy(C_padded + ii * BLOCK_SIZE_N, C + i * lda + j + ii * lda, sizeof(double) * curN);
-
-            // double __attribute__((align (32))) A_aligned[lda * lda];
-            // double __attribute__((align (32))) B_aligned[lda * lda];
-            // double __attribute__((align (__BIGGEST_ALIGNMENT__))) C_aligned[lda * lda];
-
-            //    double* restrict A_aligned;
-            //    double* restrict B_aligned;
-
-            //    posix_memalign(&A_aligned, 32, lda * lda * 8);
-            //    posix_memalign(&B_aligned, 32, lda * lda * 8);
-
-            //    memcpy(A_aligned, A, lda * lda * 8);
-            //    memcpy(B_aligned, B, lda * lda * 8);
-            // memcpy(C_aligned, C, lda * lda * 8);
+                for (int jj = 0; jj < curN; ++jj)
+                    C_padded[ii * BLOCK_SIZE_N + jj] = C[i * lda + j + ii * lda + jj];
 
             for (int k = 0; k < K; k += BLOCK_SIZE_K) {
                 int curK = min (BLOCK_SIZE_K, K - k);
@@ -142,18 +133,30 @@ static inline void block_square_multilv1(int lda, int M, int N, int K, double* r
                 memset(A_padded, 0, sizeof(double) * BLOCK_SIZE_M * BLOCK_SIZE_K);
                 memset(B_padded, 0, sizeof(double) * BLOCK_SIZE_K * BLOCK_SIZE_N);
 
+//                for (int ii = 0; ii < curM; ++ii)
+//                    memcpy(A_padded + ii * BLOCK_SIZE_K, A + i * lda + k + ii * lda, sizeof(double) * curK);
+
                 for (int ii = 0; ii < curM; ++ii)
-                    memcpy(A_padded + ii * BLOCK_SIZE_K, A + i * lda + k + ii * lda, sizeof(double) * curK);
+                    for (int kk = 0; kk < curK; ++kk)
+                        A_padded[ii * BLOCK_SIZE_K + kk] = A[i * lda + k + ii * lda + kk];
+
+//                for (int kk = 0; kk < curK; ++kk)
+//                    memcpy(B_padded + kk * BLOCK_SIZE_N, B + k * lda + j + kk * lda, sizeof(double) * curN);
 
                 for (int kk = 0; kk < curK; ++kk)
-                    memcpy(B_padded + kk * BLOCK_SIZE_N, B + k * lda + j + kk * lda, sizeof(double) * curN);
+                    for (int jj = 0; jj < curN; ++jj)
+                        B_padded[kk * BLOCK_SIZE_N + jj] = B[k * lda + j + kk * lda + jj];
 
                 block_square_multilv0(lda, BLOCK_SIZE_M, BLOCK_SIZE_N, BLOCK_SIZE_K, A_padded, B_padded, C_padded);
 
             }
 
+//            for (int ii = 0; ii < curM; ++ii)
+//                memcpy(C + i * lda + j + ii * lda, C_padded + ii * BLOCK_SIZE_N, sizeof(double) * curN);
             for (int ii = 0; ii < curM; ++ii)
-                memcpy(C + i * lda + j + ii * lda, C_padded + ii * BLOCK_SIZE_N, sizeof(double) * curN);
+                for (int jj = 0; jj < curN; ++jj)
+                    C[i * lda + j + ii * lda + jj] = C_padded[ii * BLOCK_SIZE_N + jj];
+
         }
 }
 
