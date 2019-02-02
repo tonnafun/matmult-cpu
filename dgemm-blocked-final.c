@@ -384,7 +384,7 @@ static inline void block_square_multilv2(int lda, int M, int N, int K, double* r
 //                    for (int jj = 0; jj < curN; ++jj)
 //                        B_padded[kk][jj] = B[k_lda_plus_j + kk * lda + jj];
 
-                for (int kk = curK; kk++;)
+                for (int kk = curK; kk--;)
 //                for (int kk = 0; kk < curK; ++kk)
                     memcpy(B_padded[kk], B + k_lda_plus_j + kk * lda, sizeof(double) * curN);
 
