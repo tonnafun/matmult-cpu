@@ -375,14 +375,21 @@ static inline void block_square_multilv2(int lda, int M, int N, int K, double* r
 //                    for (int kk = 0; kk < curK; ++kk)
 //                        A_padded[ii][kk] = A[i_lda_plus_k + ii * lda + kk];
 
-                for (int ii = 0; ii < curM; ++ii)
+                int ii;
+                for (ii = 0; ii < curM; ii += 4)
                     memcpy(A_padded[ii], A + i_lda_plus_k + ii * lda, sizeof(double) * curK);
+                if (ii != curM) {
+                    ii -= 3;
+                    for (; ii < curM; ++ii)
+                        memcpy(A_padded[ii], A + i_lda_plus_k + ii * lda, sizeof(double) * curK);
+                }
+                
 
 //                for (int kk = 0; kk < curK; ++kk)
 //                    for (int jj = 0; jj < curN; ++jj)
 //                        B_padded[kk][jj] = B[k_lda_plus_j + kk * lda + jj];
 
-                for (int kk = 0; kk < curKl ++kk)
+                for (int kk = 0; kk < curK; ++kk)
                     memcpy(B_padded[kk], B + k_lda_plus_j + kk * lda, sizeof(double) * curN);
 
 //                block_square_multilv1(lda, curM, curN, curK, A + i * lda + k, B + k * lda + j, C + i * lda + j);
