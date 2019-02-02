@@ -50,10 +50,10 @@ endif
 # Added by Zhen Liang
 # Additional Flags
 # CFLAGS += -mtune=core2
-CFLAGS += -march=native
-CFLAGS += -ftree-vectorize
-CFLAGS += -funroll-loops
-CFLAG += -ffast-math
+#CFLAGS += -march=native
+#CFLAGS += -ftree-vectorize
+#CFLAGS += -funroll-loops
+#CFLAG += -ffast-math
 
 #WARNINGS += -Wall -pedantic
 WARNINGS += -w -pedantic
@@ -122,7 +122,7 @@ benchmark-blas : benchmark.o dgemm-blas.o $(UTIL)
 	$(CC) -o $@ $^ $(LDLIBS) -mavx -mavx2 -mfma
 
 %.o : %.c
-	$(CC) -c $(CFLAGS) -O3 $<
+	$(CC) -c $(CFLAGS) -O3 -g $<
 #	$(CC) -c $(CFLAGS) $(OPTIMIZATION) $<
 
 
