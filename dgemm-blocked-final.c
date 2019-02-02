@@ -350,11 +350,17 @@ static inline void block_square_multilv2(int lda, int M, int N, int K, double* r
 //                memset(C_padded, 0, sizeof(double) * BLOCK_SIZE2 * BLOCK_SIZE2);
 //            }
 
+            int i_lda = i * lda;
+            int i_lda_plus_j = i_lda + j;
+
             for (int ii = 0; ii < curM; ++ii)
                 for (int jj = 0; jj < curN; ++jj)
-                    C_padded[ii][jj] = C[i * lda + j + ii * lda + jj];
+                    C_padded[ii][jj] = C[i_lda_plus_j + ii * lda + jj];
 
             for (int k = 0; k < K; k += BLOCK_SIZE2) {
+                int i_lda_plus_k = i_lda + k;
+                int k_lda_plus_j = k * lda + j;
+
                 int curK = min (BLOCK_SIZE2, K - k);
 
                 double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) A_padded[BLOCK_SIZE2][BLOCK_SIZE2];
@@ -364,11 +370,11 @@ static inline void block_square_multilv2(int lda, int M, int N, int K, double* r
 
                 for (int ii = 0; ii < curM; ++ii)
                     for (int kk = 0; kk < curK; ++kk)
-                        A_padded[ii][kk] = A[i * lda + k + ii * lda + kk];
+                        A_padded[ii][kk] = A[i_lda_plus_k + ii * lda + kk];
 
                 for (int kk = 0; kk < curK; ++kk)
                     for (int jj = 0; jj < curN; ++jj)
-                        B_padded[kk][jj] = B[k * lda + j + kk * lda + jj];
+                        B_padded[kk][jj] = B[k_lda_plus_j + kk * lda + jj];
 
 //                block_square_multilv1(lda, curM, curN, curK, A + i * lda + k, B + k * lda + j, C + i * lda + j);
 
@@ -378,7 +384,7 @@ static inline void block_square_multilv2(int lda, int M, int N, int K, double* r
 
             for (int ii = 0; ii < curM; ++ii)
                 for (int jj = 0; jj < curN; ++jj)
-                    C[i * lda + j + ii * lda + jj] = C_padded[ii][jj];
+                    C[i_lda_plus_j + ii * lda + jj] = C_padded[ii][jj];
         }
     }
 }
