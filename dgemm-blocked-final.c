@@ -43,21 +43,21 @@ lv3 cache: 10k+k
 /* This auxiliary subroutine performs a smaller dgemm operation
  *  C := C + A * B
  * where C is M-by-N, A is M-by-K, and B is K-by-N. */
-static inline void do_block (int lda, int M, int N, int K, double* restrict A, double* restrict B, double* restrict C)
-{
-    /* For each row i of A */
-    for (int i = 0; i < M; ++i)
-        /* For each column j of B */
-        for (int j = 0; j < N; ++j)
-        {
-            /* Compute C(i,j) */
-            register double cij = C[i*lda+j];
-            for (int k = 0; k < K; ++k)
-                cij += A[i*lda+k] * B[k*lda+j];
-
-            C[i*lda+j] = cij;
-        }
-}
+//static inline void do_block (int lda, int M, int N, int K, double* restrict A, double* restrict B, double* restrict C)
+//{
+//    /* For each row i of A */
+//    for (int i = 0; i < M; ++i)
+//        /* For each column j of B */
+//        for (int j = 0; j < N; ++j)
+//        {
+//            /* Compute C(i,j) */
+//            register double cij = C[i*lda+j];
+//            for (int k = 0; k < K; ++k)
+//                cij += A[i*lda+k] * B[k*lda+j];
+//
+//            C[i*lda+j] = cij;
+//        }
+//}
 
 
 
@@ -75,42 +75,42 @@ static inline void avx_kernel(int M, int N, int K, double* restrict A, double* r
     register __m256d c20,c21,c22,c23;
     //totally 3*4*4 = 48 8float/per refresh
     //__m256d zero = _mm256_set1_pd(0.0);
-    c00 = _mm256_loadu_pd(&C[0 * REG_BLOCK_SIZE_N + 0]);
-    c01 = _mm256_loadu_pd(&C[0 * REG_BLOCK_SIZE_N + 4]);
-    c02 = _mm256_loadu_pd(&C[0 * REG_BLOCK_SIZE_N + 8]);
-    c03 = _mm256_loadu_pd(&C[0 * REG_BLOCK_SIZE_N + 12]);
-    c10 = _mm256_loadu_pd(&C[1 * REG_BLOCK_SIZE_N + 0]);
-    c11 = _mm256_loadu_pd(&C[1 * REG_BLOCK_SIZE_N + 4]);
-    c12 = _mm256_loadu_pd(&C[1 * REG_BLOCK_SIZE_N + 8]);
-    c13 = _mm256_loadu_pd(&C[1 * REG_BLOCK_SIZE_N + 12]);
-    c20 = _mm256_loadu_pd(&C[2 * REG_BLOCK_SIZE_N + 0]);
-    c21 = _mm256_loadu_pd(&C[2 * REG_BLOCK_SIZE_N + 4]);
-    c22 = _mm256_loadu_pd(&C[2 * REG_BLOCK_SIZE_N + 8]);
-    c23 = _mm256_loadu_pd(&C[2 * REG_BLOCK_SIZE_N + 12]);
+    c00 = _mm256_loadu_pd(&C[0 * BLOCK_SIZE2 + 0]);
+    c01 = _mm256_loadu_pd(&C[0 * BLOCK_SIZE2 + 4]);
+    c02 = _mm256_loadu_pd(&C[0 * BLOCK_SIZE2 + 8]);
+    c03 = _mm256_loadu_pd(&C[0 * BLOCK_SIZE2 + 12]);
+    c10 = _mm256_loadu_pd(&C[1 * BLOCK_SIZE2 + 0]);
+    c11 = _mm256_loadu_pd(&C[1 * BLOCK_SIZE2 + 4]);
+    c12 = _mm256_loadu_pd(&C[1 * BLOCK_SIZE2 + 8]);
+    c13 = _mm256_loadu_pd(&C[1 * BLOCK_SIZE2 + 12]);
+    c20 = _mm256_loadu_pd(&C[2 * BLOCK_SIZE2 + 0]);
+    c21 = _mm256_loadu_pd(&C[2 * BLOCK_SIZE2 + 4]);
+    c22 = _mm256_loadu_pd(&C[2 * BLOCK_SIZE2 + 8]);
+    c23 = _mm256_loadu_pd(&C[2 * BLOCK_SIZE2 + 12]);
     for(int p = 0; p < K; p++){
         // register __m256d b1 = _mm256_loadu_pd(&B[p*lda + bi*8]);//4 8float
         // register __m256d b2 = _mm256_loadu_pd(&B[p*lda+4+bi*8]);//4 8float
         //if(ai == 0 && bi == 0){
-        register __m256d a1 = _mm256_broadcast_sd(&A[0 * K + p]);
+        register __m256d a1 = _mm256_broadcast_sd(&A[0 * BLOCK_SIZE2 + p]);
         //register __m256d a2 = _mm256_broadcast_sd(&A[0*lda+p]);
         // register __m256d a2 = a1;
-        register __m256d b1 = _mm256_loadu_pd(&B[p * REG_BLOCK_SIZE_N + 0*8]);//4 8float
-        register __m256d b2 = _mm256_loadu_pd(&B[p * REG_BLOCK_SIZE_N + 4 + 0*8]);//4 8float
+        register __m256d b1 = _mm256_loadu_pd(&B[p * BLOCK_SIZE2 + 0*8]);//4 8float
+        register __m256d b2 = _mm256_loadu_pd(&B[p * BLOCK_SIZE2 + 4 + 0*8]);//4 8float
         c00 = _mm256_fmadd_pd(a1,b1,c00);
         c01 = _mm256_fmadd_pd(a1,b2,c01);
 
         //else if(ai == 0 && bi == 1){
         // a1 = _mm256_broadcast_sd(&A[0*lda+p]);
         // a2 = _mm256_broadcast_sd(&A[0*lda+p]);
-        b1 = _mm256_loadu_pd(&B[p * REG_BLOCK_SIZE_N + 1*8]);//4 8float
-        b2 = _mm256_loadu_pd(&B[p * REG_BLOCK_SIZE_N +4+1*8]);//4 8float
+        b1 = _mm256_loadu_pd(&B[p * BLOCK_SIZE2 + 1*8]);//4 8float
+        b2 = _mm256_loadu_pd(&B[p * BLOCK_SIZE2 +4+1*8]);//4 8float
         c02 = _mm256_fmadd_pd(a1,b1,c02);
         c03 = _mm256_fmadd_pd(a1,b2,c03);
 
         //else if(ai == 1 && bi == 0){
-        b1 = _mm256_loadu_pd(&B[p * REG_BLOCK_SIZE_N + 0*8]);//4 8float
-        b2 = _mm256_loadu_pd(&B[p * REG_BLOCK_SIZE_N +4+0*8]);//4 8float
-        a1 = _mm256_broadcast_sd(&A[1 * K +p]);
+        b1 = _mm256_loadu_pd(&B[p * BLOCK_SIZE2 + 0*8]);//4 8float
+        b2 = _mm256_loadu_pd(&B[p * BLOCK_SIZE2 +4+0*8]);//4 8float
+        a1 = _mm256_broadcast_sd(&A[1 * BLOCK_SIZE2 +p]);
         // a2 = a1;
         // a2 = _mm256_broadcast_sd(&A[1*lda+p]);
         c10 = _mm256_fmadd_pd(a1,b1,c10);
@@ -118,17 +118,17 @@ static inline void avx_kernel(int M, int N, int K, double* restrict A, double* r
 
 
         //else if(ai == 1 && bi == 1){
-        b1 = _mm256_loadu_pd(&B[p * REG_BLOCK_SIZE_N + 1*8]);//4 8float
-        b2 = _mm256_loadu_pd(&B[p * REG_BLOCK_SIZE_N +4+1*8]);//4 8float
+        b1 = _mm256_loadu_pd(&B[p * BLOCK_SIZE2 + 1*8]);//4 8float
+        b2 = _mm256_loadu_pd(&B[p * BLOCK_SIZE2 +4+1*8]);//4 8float
         // a1 = _mm256_broadcast_sd(&A[1*lda+p]);
         // a2 = _mm256_broadcast_sd(&A[1*lda+p]);
         c12 = _mm256_fmadd_pd(a1,b1,c12);
         c13 = _mm256_fmadd_pd(a1,b2,c13);
 
         //else if(ai == 2 && bi == 0){
-        b1 = _mm256_loadu_pd(&B[p * REG_BLOCK_SIZE_N + 0*8]);//4 8float
-        b2 = _mm256_loadu_pd(&B[p * REG_BLOCK_SIZE_N +4+0*8]);//4 8float
-        a1 = _mm256_broadcast_sd(&A[2* K +p]);
+        b1 = _mm256_loadu_pd(&B[p * BLOCK_SIZE2 + 0*8]);//4 8float
+        b2 = _mm256_loadu_pd(&B[p * BLOCK_SIZE2 +4+0*8]);//4 8float
+        a1 = _mm256_broadcast_sd(&A[2* BLOCK_SIZE2 +p]);
         // a2 = a1;
         // a2 = _mm256_broadcast_sd(&A[2*lda+p]);
         c20 = _mm256_fmadd_pd(a1,b1,c20);
@@ -136,8 +136,8 @@ static inline void avx_kernel(int M, int N, int K, double* restrict A, double* r
 
 
         //else if(ai == 2 && bi == 1){
-        b1 = _mm256_loadu_pd(&B[p * REG_BLOCK_SIZE_N + 1*8]);//4 8float
-        b2 = _mm256_loadu_pd(&B[p * REG_BLOCK_SIZE_N +4+1*8]);//4 8float
+        b1 = _mm256_loadu_pd(&B[p * BLOCK_SIZE2 + 1*8]);//4 8float
+        b2 = _mm256_loadu_pd(&B[p * BLOCK_SIZE2 +4+1*8]);//4 8float
         // a1 = _mm256_broadcast_sd(&A[2*lda+p]);
         // a2 = _mm256_broadcast_sd(&A[2*lda+p]);
         c22 = _mm256_fmadd_pd(a1,b1,c22);
@@ -150,23 +150,23 @@ static inline void avx_kernel(int M, int N, int K, double* restrict A, double* r
     }
 
 
-    _mm256_storeu_pd(&C[0 * REG_BLOCK_SIZE_N +0*8], c00);
-    _mm256_storeu_pd(&C[0 * REG_BLOCK_SIZE_N +4+0*8], c01);
+    _mm256_storeu_pd(&C[0 * BLOCK_SIZE2 +0*8], c00);
+    _mm256_storeu_pd(&C[0 * BLOCK_SIZE2 +4+0*8], c01);
 
-    _mm256_storeu_pd(&C[0 * REG_BLOCK_SIZE_N +1*8], c02);
-    _mm256_storeu_pd(&C[0 * REG_BLOCK_SIZE_N +4+1*8], c03);
+    _mm256_storeu_pd(&C[0 * BLOCK_SIZE2 +1*8], c02);
+    _mm256_storeu_pd(&C[0 * BLOCK_SIZE2 +4+1*8], c03);
 
-    _mm256_storeu_pd(&C[1 * REG_BLOCK_SIZE_N +0*8], c10);
-    _mm256_storeu_pd(&C[1 * REG_BLOCK_SIZE_N +4+0*8], c11);
+    _mm256_storeu_pd(&C[1 * BLOCK_SIZE2 +0*8], c10);
+    _mm256_storeu_pd(&C[1 * BLOCK_SIZE2 +4+0*8], c11);
 
-    _mm256_storeu_pd(&C[1 * REG_BLOCK_SIZE_N +1*8], c12);
-    _mm256_storeu_pd(&C[1 * REG_BLOCK_SIZE_N +4+1*8], c13);
+    _mm256_storeu_pd(&C[1 * BLOCK_SIZE2 +1*8], c12);
+    _mm256_storeu_pd(&C[1 * BLOCK_SIZE2 +4+1*8], c13);
 
-    _mm256_storeu_pd(&C[2 * REG_BLOCK_SIZE_N +0*8], c20);
-    _mm256_storeu_pd(&C[2 * REG_BLOCK_SIZE_N +4+0*8], c21);
+    _mm256_storeu_pd(&C[2 * BLOCK_SIZE2 +0*8], c20);
+    _mm256_storeu_pd(&C[2 * BLOCK_SIZE2 +4+0*8], c21);
 
-    _mm256_storeu_pd(&C[2 * REG_BLOCK_SIZE_N +1*8], c22);
-    _mm256_storeu_pd(&C[2 * REG_BLOCK_SIZE_N +4+1*8], c23);
+    _mm256_storeu_pd(&C[2 * BLOCK_SIZE2 +1*8], c22);
+    _mm256_storeu_pd(&C[2 * BLOCK_SIZE2 +4+1*8], c23);
 }
 
 
