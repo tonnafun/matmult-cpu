@@ -322,7 +322,7 @@ static inline void do_block_2(int M, int N, int K, double* restrict A_padded, do
         int curM = min (L1_BLOCK_SIZE_M, M - i);
 
         for (int j = 0; j < N; j += L1_BLOCK_SIZE_N) {
-            int curM = min (L1_BLOCK_SIZE_N, N - j);
+            int curN = min (L1_BLOCK_SIZE_N, N - j);
 
             for (int k = 0; k < K; k += L1_BLOCK_SIZE_K) {
                 int curK = min (L1_BLOCK_SIZE_K, K - k);
@@ -344,7 +344,7 @@ static inline void block_square_multilv2(int lda, int M, int N, int K, double* r
         for (int j = 0; j < N; j += BLOCK_SIZE2) {
             int curN = min (BLOCK_SIZE2, N - j);
 
-            double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) C_padded[BLOCK_SIZE2][BLOCK_SIZE2];
+            double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) C_padded[BLOCK_SIZE2][BLOCK_SIZE2] = {0};
 
 //            if (curN != BLOCK_SIZE2) {
 //                memset(C_padded, 0, sizeof(double) * BLOCK_SIZE2 * BLOCK_SIZE2);
@@ -363,10 +363,10 @@ static inline void block_square_multilv2(int lda, int M, int N, int K, double* r
 
                 int curK = min (BLOCK_SIZE2, K - k);
 
-                double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) A_padded[BLOCK_SIZE2][BLOCK_SIZE2];
-                double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) B_padded[BLOCK_SIZE2][BLOCK_SIZE2];
-                memset(A_padded, 0, sizeof(double) * BLOCK_SIZE2 * BLOCK_SIZE2);
-                memset(B_padded, 0, sizeof(double) * BLOCK_SIZE2 * BLOCK_SIZE2);
+                double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) A_padded[BLOCK_SIZE2][BLOCK_SIZE2] = {0};
+                double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) B_padded[BLOCK_SIZE2][BLOCK_SIZE2] = {0};
+//                memset(A_padded, 0, sizeof(double) * BLOCK_SIZE2 * BLOCK_SIZE2);
+//                memset(B_padded, 0, sizeof(double) * BLOCK_SIZE2 * BLOCK_SIZE2);
 
                 for (int ii = 0; ii < curM; ++ii)
                     for (int kk = 0; kk < curK; ++kk)
