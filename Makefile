@@ -122,7 +122,7 @@ benchmark-blas : benchmark.o dgemm-blas.o $(UTIL)
 	$(CC) -o $@ $^ $(LDLIBS) -mavx -mavx2 -mfma
 
 %.o : %.c
-	$(CC) -c $(CFLAGS) -O3 -g $<
+	$(CC) -c $(CFLAGS) -O4 -g $<
 #	$(CC) -c $(CFLAGS) $(OPTIMIZATION) $<
 
 
