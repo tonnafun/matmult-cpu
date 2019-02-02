@@ -353,9 +353,12 @@ static inline void block_square_multilv2(int lda, int M, int N, int K, double* r
             int i_lda = i * lda;
             int i_lda_plus_j = i_lda + j;
 
+//            for (int ii = 0; ii < curM; ++ii)
+//                for (int jj = 0; jj < curN; ++jj)
+//                    C_padded[ii][jj] = C[i_lda_plus_j + ii * lda + jj];
+
             for (int ii = 0; ii < curM; ++ii)
-                for (int jj = 0; jj < curN; ++jj)
-                    C_padded[ii][jj] = C[i_lda_plus_j + ii * lda + jj];
+                memcpy(C_padded[ii], C + i_lda_plus_j + ii * lda, sizeof(double) * curN);
 
             for (int k = 0; k < K; k += BLOCK_SIZE2) {
                 int i_lda_plus_k = i_lda + k;
@@ -368,13 +371,19 @@ static inline void block_square_multilv2(int lda, int M, int N, int K, double* r
 //                memset(A_padded, 0, sizeof(double) * BLOCK_SIZE2 * BLOCK_SIZE2);
 //                memset(B_padded, 0, sizeof(double) * BLOCK_SIZE2 * BLOCK_SIZE2);
 
-                for (int ii = 0; ii < curM; ++ii)
-                    for (int kk = 0; kk < curK; ++kk)
-                        A_padded[ii][kk] = A[i_lda_plus_k + ii * lda + kk];
+//                for (int ii = 0; ii < curM; ++ii)
+//                    for (int kk = 0; kk < curK; ++kk)
+//                        A_padded[ii][kk] = A[i_lda_plus_k + ii * lda + kk];
 
-                for (int kk = 0; kk < curK; ++kk)
-                    for (int jj = 0; jj < curN; ++jj)
-                        B_padded[kk][jj] = B[k_lda_plus_j + kk * lda + jj];
+                for (int ii = 0; ii < curM; ++ii)
+                    memcpy(A_padded[ii], A + i_lda_plus_k + ii * lda, sizeof(double) * curK);
+
+//                for (int kk = 0; kk < curK; ++kk)
+//                    for (int jj = 0; jj < curN; ++jj)
+//                        B_padded[kk][jj] = B[k_lda_plus_j + kk * lda + jj];
+
+                for (int kk = 0; kk < curKl ++kk)
+                    memcpy(B_padded[kk], B + k_lda_plus_j + kk * lda, sizeof(double) * curN);
 
 //                block_square_multilv1(lda, curM, curN, curK, A + i * lda + k, B + k * lda + j, C + i * lda + j);
 
