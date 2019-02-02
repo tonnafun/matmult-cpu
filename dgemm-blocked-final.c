@@ -360,7 +360,7 @@ static inline void block_square_multilv2(int lda, int M, int N, int K,
 //                    C_padded[ii][jj] = C[i_lda_plus_j + ii * lda + jj];
 
             for (int ii = 0; ii < curM; ++ii)
-                memcpy(C_padded[ii], C + i_lda_plus_j + ii * lda, sizeof(double) * curN);
+                memcpy(C_padded + ii * BLOCK_SIZE2, C + i_lda_plus_j + ii * lda, sizeof(double) * curN);
 
             for (int k = 0; k < K; k += BLOCK_SIZE2) {
                 int i_lda_plus_k = i_lda + k;
