@@ -87,7 +87,7 @@ static inline void avx_kernel(int M, int N, int K, double* restrict A, double* r
     c21 = _mm256_loadu_pd(&C[2 * BLOCK_SIZE2 + 4]);
     c22 = _mm256_loadu_pd(&C[2 * BLOCK_SIZE2 + 8]);
     c23 = _mm256_loadu_pd(&C[2 * BLOCK_SIZE2 + 12]);
-    for(int p = 0; p < K; p++){
+    for(int p = 0; p < K; ++p){
         // register __m256d b1 = _mm256_loadu_pd(&B[p*lda + bi*8]);//4 8float
         // register __m256d b2 = _mm256_loadu_pd(&B[p*lda+4+bi*8]);//4 8float
         //if(ai == 0 && bi == 0){
@@ -96,6 +96,7 @@ static inline void avx_kernel(int M, int N, int K, double* restrict A, double* r
         // register __m256d a2 = a1;
         register __m256d b1 = _mm256_loadu_pd(&B[p * BLOCK_SIZE2 + 0*8]);//4 8float
         register __m256d b2 = _mm256_loadu_pd(&B[p * BLOCK_SIZE2 + 4 + 0*8]);//4 8float
+
         c00 = _mm256_fmadd_pd(a1,b1,c00);
         c01 = _mm256_fmadd_pd(a1,b2,c01);
 
@@ -298,9 +299,9 @@ static inline void avx_kernel(int M, int N, int K, double* restrict A, double* r
 
 
 static inline void do_block_1(double* restrict A_padded, double* restrict B_padded, double* restrict C_padded) {
-    for (int i = 0; i < BLOCK_SIZE2; i += REG_BLOCK_SIZE_M)
-        for (int j = 0; j < BLOCK_SIZE2; j += REG_BLOCK_SIZE_N)
-            for (int k = 0; k < BLOCK_SIZE2; k += REG_BLOCK_SIZE_K)
+    for (int i = 0; i < L1_BLOCK_SIZE_M; i += REG_BLOCK_SIZE_M)
+        for (int j = 0; j < L1_BLOCK_SIZE_N; j += REG_BLOCK_SIZE_N)
+            for (int k = 0; k < L1_BLOCK_SIZE_K; k += REG_BLOCK_SIZE_K)
                 avx_kernel(REG_BLOCK_SIZE_M,
                            REG_BLOCK_SIZE_N,
                            REG_BLOCK_SIZE_K,
@@ -584,4 +585,4 @@ void square_dgemm (int lda, double* restrict A, double* restrict B, double* rest
 //
 //    _mm256_storeu_pd(&C[0*lda+1*8], c02);
 //    _mm256_storeu_pd(&C[0*lda+4+1*8], c03);
-}
+//}
