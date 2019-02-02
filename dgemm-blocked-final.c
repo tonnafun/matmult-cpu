@@ -337,7 +337,7 @@ static inline void do_block_2(int M, int N, int K, double* restrict A_padded, do
 
 static inline void block_square_multilv2(int lda, int M, int N, int K,
                                          double* restrict A, double* restrict B, double* restrict C,
-                                         double* A_padded, double* B_padded, double* C_padded) {
+                                         double* restrict A_padded, double* restrict B_padded, double* restrict C_padded) {
 //    double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) C_padded[BLOCK_SIZE2][BLOCK_SIZE2] = {0};
 
     for (int i = 0; i < M; i += BLOCK_SIZE2) {
