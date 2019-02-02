@@ -24,8 +24,8 @@ lv3 cache: 10k+k
 //128 - 500
 #define REGA 3
 #define REGB 4 // B = 4*4
-#define BLOCK_SIZE1 96
-#define BLOCK_SIZE2 96
+//#define BLOCK_SIZE1 96
+#define BLOCK_SIZE2 192
 
 #define L1_BLOCK_SIZE_M 48
 #define L1_BLOCK_SIZE_N 32
@@ -173,10 +173,10 @@ static inline void avx_kernel(int M, int N, int K, double* restrict A, double* r
 
 static inline void block_square_multilv0(int lda, int M, int N, int K, double* restrict A, double* restrict B, double* restrict C){ // 3*16
     for (int i = 0; i < M; i += REG_BLOCK_SIZE_M) {
-        int curM = min (BLOCK_SIZE_M, M - i);
+        int curM = min (REG_BLOCK_SIZE_M, M - i);
 
         for (int j = 0; j < N; j += REG_BLOCK_SIZE_N) {
-            int curN = min (BLOCK_SIZE_N, N - j);
+            int curN = min (REG_BLOCK_SIZE_M, N - j);
 
 //            double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) C_padded[BLOCK_SIZE_M * BLOCK_SIZE_N];
 
@@ -297,6 +297,29 @@ static inline void block_square_multilv1(int lda, int M, int N, int K, double* r
 }
 
 
+static inline void do_block_1(double* restrict A_padded, double* restrict B_padded, double* restrict C_padded) {
+    for (int i = 0; i < BLOCK_SIZE2; i += REG_BLOCK_SIZE_M)
+        for (int j = 0; j < BLOCK_SIZE2; j += REG_BLOCK_SIZE_N)
+            for (int k = 0; k < BLOCK_SIZE2; k += REG_BLOCK_SIZE_K)
+                avx_kernel(REG_BLOCK_SIZE_M,
+                           REG_BLOCK_SIZE_N,
+                           REG_BLOCK_SIZE_K,
+                           A_padded + i * BLOCK_SIZE2 + k,
+                           B_padded + k * BLOCK_SIZE2 + j,
+                           C_padded + i * BLOCK_SIZE2 + j);
+}
+
+
+static inline void do_block_2(double* restrict A_padded, double* restrict B_padded, double* restrict C_padded) {
+    for (int i = 0; i < BLOCK_SIZE2; i += L1_BLOCK_SIZE_M)
+        for (int j = 0; j < BLOCK_SIZE2; j += L1_BLOCK_SIZE_N)
+            for (int k = 0; k < BLOCK_SIZE2; k += L1_BLOCK_SIZE_K)
+                do_block_1(A_padded + i * BLOCK_SIZE2 + k,
+                           B_padded + k * BLOCK_SIZE2 + j,
+                           C_padded + i * BLOCK_SIZE2 + j);
+}
+
+
 static inline void block_square_multilv2(int lda, int M, int N, int K, double* restrict A, double* restrict B, double* restrict C){
     for (int i = 0; i < M; i += BLOCK_SIZE2) {
         int curM = min (BLOCK_SIZE2, M - i);
@@ -304,14 +327,41 @@ static inline void block_square_multilv2(int lda, int M, int N, int K, double* r
         for (int j = 0; j < N; j += BLOCK_SIZE2) {
             int curN = min (BLOCK_SIZE2, N - j);
 
+            double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) C_padded[BLOCK_SIZE2][BLOCK_SIZE2];
+
+//            if (curN != BLOCK_SIZE2) {
+//                memset(C_padded, 0, sizeof(double) * BLOCK_SIZE2 * BLOCK_SIZE2);
+//            }
+
+            for (int ii = 0; ii < BLOCK_SIZE2; ++ii)
+                for (int jj = 0; jj < BLOCK_SIZE2; ++jj)
+                    C_padded[ii][jj] = C[i * lda + j + ii * lda + jj];
+
             for (int k = 0; k < K; k += BLOCK_SIZE2) {
-//                int curM = min (BLOCK_SIZE2, M - i);
-//                int curN = min (BLOCK_SIZE2, N - j);
                 int curK = min (BLOCK_SIZE2, K - k);
 
-                block_square_multilv1(lda, curM, curN, curK, A + i * lda + k, B + k * lda + j, C + i * lda + j);
+                double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) A_padded[BLOCK_SIZE2][BLOCK_SIZE2];
+                double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) B_padded[BLOCK_SIZE2][BLOCK_SIZE2];
+                memset(A_padded, 0, sizeof(double) * BLOCK_SIZE2 * BLOCK_SIZE2);
+                memset(B_padded, 0, sizeof(double) * BLOCK_SIZE2 * BLOCK_SIZE2);
+
+                for (int ii = 0; ii < BLOCK_SIZE2; ++ii)
+                    for (int kk = 0; kk < BLOCK_SIZE2; ++kk)
+                        A_padded[ii][kk] = A[i * lda + k + ii * lda + kk];
+
+                for (int kk = 0; kk < BLOCK_SIZE2; ++kk)
+                    for (int jj = 0; jj < BLOCK_SIZE2; ++jj)
+                        B_padded[kk][jj] = B[k * lda + j + kk * lda + jj];
+
+//                block_square_multilv1(lda, curM, curN, curK, A + i * lda + k, B + k * lda + j, C + i * lda + j);
+
+                do_block_2(A_padded, B_padded, C_padded);
 
             }
+
+            for (int ii = 0; ii < BLOCK_SIZE2; ++ii)
+                for (int jj = 0; jj < BLOCK_SIZE2; ++jj)
+                    C[i * lda + j + ii * lda + jj] = C_padded[ii][jj];
         }
     }
 }
