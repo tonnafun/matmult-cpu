@@ -168,9 +168,10 @@ static inline void avx_kernel(int M, int N, int K, double* restrict A, double* r
 
 
 static inline void block_square_multilv1(int lda, int M, int N, int K, double* restrict A, double* restrict B, double* restrict C){ // 3*16
-    for (int i = 0; i < M; i += BLOCK_SIZE_M)
-        for(int j = 0; j < N; j += BLOCK_SIZE_N) {
-            int curM = min (BLOCK_SIZE_M, M - i);
+    for (int i = 0; i < M; i += BLOCK_SIZE_M) {
+        int curM = min (BLOCK_SIZE_M, M - i);
+
+        for (int j = 0; j < N; j += BLOCK_SIZE_N) {
             int curN = min (BLOCK_SIZE_N, N - j);
 
 //            double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) C_padded[BLOCK_SIZE_M * BLOCK_SIZE_N];
@@ -217,7 +218,7 @@ static inline void block_square_multilv1(int lda, int M, int N, int K, double* r
                 for (int ii = 0; ii < curM; ++ii)
                     for (int jj = 0; jj < curN; ++jj)
                         C[i * lda + j + ii * lda + jj] = C_padded[ii][jj];
-                    // ----------------
+                // ----------------
 
 //                    memcpy(C + i * lda + j + ii * lda, C_padded + ii * BLOCK_SIZE_N, sizeof(double) * curN);
             }
@@ -271,22 +272,29 @@ static inline void block_square_multilv1(int lda, int M, int N, int K, double* r
 //            }
 
         }
+    }
 }
 
 
 
 
 static inline void block_square_multilv2(int lda, int M, int N, int K, double* restrict A, double* restrict B, double* restrict C){
-    for (int i = 0; i < M; i += BLOCK_SIZE2)
-        for(int j = 0; j < N; j += BLOCK_SIZE2)
-            for(int k = 0; k < K; k += BLOCK_SIZE2){
-                int curM = min (BLOCK_SIZE2, M-i);
-                int curN = min (BLOCK_SIZE2, N-j);
-                int curK = min (BLOCK_SIZE2, K-k);
+    for (int i = 0; i < M; i += BLOCK_SIZE2) {
+        int curM = min (BLOCK_SIZE2, M - i);
 
-                block_square_multilv1(lda, curM, curN, curK, A + i*lda + k, B + k*lda + j, C + i*lda + j);
+        for (int j = 0; j < N; j += BLOCK_SIZE2) {
+            int curN = min (BLOCK_SIZE2, N - j);
+
+            for (int k = 0; k < K; k += BLOCK_SIZE2) {
+//                int curM = min (BLOCK_SIZE2, M - i);
+//                int curN = min (BLOCK_SIZE2, N - j);
+                int curK = min (BLOCK_SIZE2, K - k);
+
+                block_square_multilv1(lda, curM, curN, curK, A + i * lda + k, B + k * lda + j, C + i * lda + j);
 
             }
+        }
+    }
 }
 
 
