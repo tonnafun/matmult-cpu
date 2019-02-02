@@ -298,26 +298,42 @@ static inline void avx_kernel(int M, int N, int K, double* restrict A, double* r
 //}
 
 
-static inline void do_block_1(double* restrict A_padded, double* restrict B_padded, double* restrict C_padded) {
-    for (int i = 0; i < L1_BLOCK_SIZE_M; i += REG_BLOCK_SIZE_M)
-        for (int j = 0; j < L1_BLOCK_SIZE_N; j += REG_BLOCK_SIZE_N)
-            for (int k = 0; k < L1_BLOCK_SIZE_K; k += REG_BLOCK_SIZE_K)
+static inline void do_block_1(int M, int N, int K, double* restrict A_padded, double* restrict B_padded, double* restrict C_padded) {
+    for (int i = 0; i < M; i += REG_BLOCK_SIZE_M)
+        for (int j = 0; j < N; j += REG_BLOCK_SIZE_N)
+            for (int k = 0; k < K; k += REG_BLOCK_SIZE_K) {
+                int curK = min (REG_BLOCK_SIZE_K, K - k);
+
                 avx_kernel(REG_BLOCK_SIZE_M,
                            REG_BLOCK_SIZE_N,
-                           REG_BLOCK_SIZE_K,
+                           curK,
                            A_padded + i * BLOCK_SIZE2 + k,
                            B_padded + k * BLOCK_SIZE2 + j,
                            C_padded + i * BLOCK_SIZE2 + j);
+            }
 }
 
 
-static inline void do_block_2(double* restrict A_padded, double* restrict B_padded, double* restrict C_padded) {
-    for (int i = 0; i < BLOCK_SIZE2; i += L1_BLOCK_SIZE_M)
-        for (int j = 0; j < BLOCK_SIZE2; j += L1_BLOCK_SIZE_N)
-            for (int k = 0; k < BLOCK_SIZE2; k += L1_BLOCK_SIZE_K)
-                do_block_1(A_padded + i * BLOCK_SIZE2 + k,
+static inline void do_block_2(int M, int N, int K, double* restrict A_padded, double* restrict B_padded, double* restrict C_padded) {
+//    if (M == 0 || N == 0 || K == 0)
+//        return;
+
+    for (int i = 0; i < M; i += L1_BLOCK_SIZE_M) {
+        int curM = min (L1_BLOCK_SIZE_M, M - i);
+
+        for (int j = 0; j < N; j += L1_BLOCK_SIZE_N) {
+            int curM = min (L1_BLOCK_SIZE_N, N - j);
+
+            for (int k = 0; k < K; k += L1_BLOCK_SIZE_K) {
+                int curK = min (L1_BLOCK_SIZE_K, K - k);
+
+                do_block_1(curM, curN, curK,
+                           A_padded + i * BLOCK_SIZE2 + k,
                            B_padded + k * BLOCK_SIZE2 + j,
                            C_padded + i * BLOCK_SIZE2 + j);
+            }
+        }
+    }
 }
 
 
@@ -356,7 +372,7 @@ static inline void block_square_multilv2(int lda, int M, int N, int K, double* r
 
 //                block_square_multilv1(lda, curM, curN, curK, A + i * lda + k, B + k * lda + j, C + i * lda + j);
 
-                do_block_2(A_padded, B_padded, C_padded);
+                do_block_2(curM, curN, curK, A_padded, B_padded, C_padded);
 
             }
 
