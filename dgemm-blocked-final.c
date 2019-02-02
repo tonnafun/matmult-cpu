@@ -335,8 +335,10 @@ static inline void do_block_2(int M, int N, int K, double* restrict A_padded, do
 }
 
 
-static inline void block_square_multilv2(int lda, int M, int N, int K, double* restrict A, double* restrict B, double* restrict C){
-    double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) C_padded[BLOCK_SIZE2][BLOCK_SIZE2] = {0};
+static inline void block_square_multilv2(int lda, int M, int N, int K,
+                                         double* restrict A, double* restrict B, double* restrict C,
+                                         double* A_padded, double* B_padded, double* C_padded) {
+//    double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) C_padded[BLOCK_SIZE2][BLOCK_SIZE2] = {0};
 
     for (int i = 0; i < M; i += BLOCK_SIZE2) {
         int curM = min (BLOCK_SIZE2, M - i);
@@ -366,8 +368,8 @@ static inline void block_square_multilv2(int lda, int M, int N, int K, double* r
 
                 int curK = min (BLOCK_SIZE2, K - k);
 
-                double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) A_padded[BLOCK_SIZE2][BLOCK_SIZE2] = {0};
-                double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) B_padded[BLOCK_SIZE2][BLOCK_SIZE2] = {0};
+//                double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) A_padded[BLOCK_SIZE2][BLOCK_SIZE2] = {0};
+//                double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) B_padded[BLOCK_SIZE2][BLOCK_SIZE2] = {0};
 //                memset(A_padded, 0, sizeof(double) * BLOCK_SIZE2 * BLOCK_SIZE2);
 //                memset(B_padded, 0, sizeof(double) * BLOCK_SIZE2 * BLOCK_SIZE2);
 
@@ -405,7 +407,11 @@ static inline void block_square_multilv2(int lda, int M, int N, int K, double* r
 
 
 void square_dgemm (int lda, double* restrict A, double* restrict B, double* restrict C) {
-    block_square_multilv2(lda, lda, lda, lda, A, B, C);
+    double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) C_padded[BLOCK_SIZE2][BLOCK_SIZE2] = {0};
+    double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) A_padded[BLOCK_SIZE2][BLOCK_SIZE2] = {0};
+    double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) B_padded[BLOCK_SIZE2][BLOCK_SIZE2] = {0};
+
+    block_square_multilv2(lda, lda, lda, lda, A, B, C, A_padded, B_padded, C_padded);
 }
 
 
