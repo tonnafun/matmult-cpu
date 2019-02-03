@@ -334,11 +334,84 @@ static inline void do_block_2(int M, int N, int K, double* restrict A_padded, do
     }
 }
 
+//
+//static inline void block_square_multilv2(int lda, int M, int N, int K,
+//                                         double* restrict A, double* restrict B, double* restrict C,
+//                                         double* restrict A_padded, double* restrict B_padded, double* restrict C_padded) {
+////    double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) C_padded[BLOCK_SIZE2][BLOCK_SIZE2] = {0};
+//
+//    for (int i = 0; i < M; i += BLOCK_SIZE2) {
+//        int curM = min (BLOCK_SIZE2, M - i);
+//
+//        for (int j = 0; j < N; j += BLOCK_SIZE2) {
+//            int curN = min (BLOCK_SIZE2, N - j);
+//
+////            double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) C_padded[BLOCK_SIZE2][BLOCK_SIZE2] = {0};
+//
+////            if (curN != BLOCK_SIZE2) {
+////                memset(C_padded, 0, sizeof(double) * BLOCK_SIZE2 * BLOCK_SIZE2);
+////            }
+//
+//            int i_lda = i * lda;
+//            int i_lda_plus_j = i_lda + j;
+//
+////            for (int ii = 0; ii < curM; ++ii)
+////                for (int jj = 0; jj < curN; ++jj)
+////                    C_padded[ii][jj] = C[i_lda_plus_j + ii * lda + jj];
+//
+//            for (int ii = 0; ii < curM; ++ii)
+//                memcpy(C_padded + ii * BLOCK_SIZE2, C + i_lda_plus_j + ii * lda, sizeof(double) * curN);
+//
+//            for (int k = 0; k < K; k += BLOCK_SIZE2) {
+//                int i_lda_plus_k = i_lda + k;
+//                int k_lda_plus_j = k * lda + j;
+//
+//                int curK = min (BLOCK_SIZE2, K - k);
+//
+////                double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) A_padded[BLOCK_SIZE2][BLOCK_SIZE2] = {0};
+////                double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) B_padded[BLOCK_SIZE2][BLOCK_SIZE2] = {0};
+////                memset(A_padded, 0, sizeof(double) * BLOCK_SIZE2 * BLOCK_SIZE2);
+////                memset(B_padded, 0, sizeof(double) * BLOCK_SIZE2 * BLOCK_SIZE2);
+//
+////                for (int ii = 0; ii < curM; ++ii)
+////                    for (int kk = 0; kk < curK; ++kk)
+////                        A_padded[ii][kk] = A[i_lda_plus_k + ii * lda + kk];
+//
+//                for (int ii = 0; ii < curM; ++ii) {
+//                    memcpy(A_padded + ii * BLOCK_SIZE2, A + i_lda_plus_k + ii * lda, sizeof(double) * curK);
+//                }
+//
+////                for (int kk = 0; kk < curK; ++kk)
+////                    for (int jj = 0; jj < curN; ++jj)
+////                        B_padded[kk][jj] = B[k_lda_plus_j + kk * lda + jj];
+//
+//                for (int kk = 0; kk < curK; ++kk)
+//                    memcpy(B_padded + kk * BLOCK_SIZE2, B + k_lda_plus_j + kk * lda, sizeof(double) * curN);
+//
+////                block_square_multilv1(lda, curM, curN, curK, A + i * lda + k, B + k * lda + j, C + i * lda + j);
+//
+//                do_block_2(curM, curN, curK, A_padded, B_padded, C_padded);
+//
+//            }
+//
+////            for (int ii = 0; ii < curM; ++ii)
+////                for (int jj = 0; jj < curN; ++jj)
+////                    C[i_lda_plus_j + ii * lda + jj] = C_padded[ii][jj];
+//
+//            for (int ii = 0; ii < curM; ++ii)
+//                memcpy(C + i_lda_plus_j + ii * lda, C_padded + ii * BLOCK_SIZE2, sizeof(double) * curN);
+//        }
+//    }
+//}
 
-static inline void block_square_multilv2(int lda, int M, int N, int K,
-                                         double* restrict A, double* restrict B, double* restrict C,
-                                         double* restrict A_padded, double* restrict B_padded, double* restrict C_padded) {
-//    double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) C_padded[BLOCK_SIZE2][BLOCK_SIZE2] = {0};
+
+
+void square_dgemm (int lda, double* restrict A, double* restrict B, double* restrict C) {
+    double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) C_padded[BLOCK_SIZE2][BLOCK_SIZE2] = {0};
+    double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) A_padded[BLOCK_SIZE2][BLOCK_SIZE2] = {0};
+    double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) B_padded[BLOCK_SIZE2][BLOCK_SIZE2] = {0};
+
+//    block_square_multilv2(lda, lda, lda, lda, A, B, C, A_padded, B_padded, C_padded);
 
     for (int i = 0; i < M; i += BLOCK_SIZE2) {
         int curM = min (BLOCK_SIZE2, M - i);
@@ -402,16 +475,6 @@ static inline void block_square_multilv2(int lda, int M, int N, int K,
                 memcpy(C + i_lda_plus_j + ii * lda, C_padded + ii * BLOCK_SIZE2, sizeof(double) * curN);
         }
     }
-}
-
-
-
-void square_dgemm (int lda, double* restrict A, double* restrict B, double* restrict C) {
-    double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) C_padded[BLOCK_SIZE2][BLOCK_SIZE2] = {0};
-    double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) A_padded[BLOCK_SIZE2][BLOCK_SIZE2] = {0};
-    double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) B_padded[BLOCK_SIZE2][BLOCK_SIZE2] = {0};
-
-    block_square_multilv2(lda, lda, lda, lda, A, B, C, A_padded, B_padded, C_padded);
 }
 
 
