@@ -37,8 +37,6 @@ lv3 cache: 10k+k
 //M = REGA = 3, N = REGB*256/64 = 16
 //for block1, M = 3, N = 16, which means all c00-c13 are stored in C
 //K changeable
-
-
 static inline void avx_kernel(int K, double* restrict A, double* restrict B, double* restrict C) {
     register __m256d c00,c01,c02,c03;
     register __m256d c10,c11,c12,c13;
