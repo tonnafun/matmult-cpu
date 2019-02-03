@@ -557,6 +557,33 @@ void square_dgemm (int lda, double* restrict A, double* restrict B, double* rest
 
             for (int ii = 0; ii < curM; ++ii)
                 memcpy(C + i_lda_plus_j + ii * lda, C_padded[ii], sizeof(double) * curN);
+
+            // ---------------
+            ii = 0;
+            block_limit = (curM / 8) * 8;
+            while (ii < block_limit) {
+                memcpy(C + i_lda_plus_j + ii * lda, C_padded[ii], sizeof(double) * curN);
+                memcpy(C + i_lda_plus_j + (ii + 1) * lda, C_padded[ii + 1], sizeof(double) * curN);
+                memcpy(C + i_lda_plus_j + (ii + 2) * lda, C_padded[ii + 2], sizeof(double) * curN);
+                memcpy(C + i_lda_plus_j + (ii + 3) * lda, C_padded[ii + 3], sizeof(double) * curN);
+                memcpy(C + i_lda_plus_j + (ii + 4) * lda, C_padded[ii + 4], sizeof(double) * curN);
+                memcpy(C + i_lda_plus_j + (ii + 5) * lda, C_padded[ii + 5], sizeof(double) * curN);
+                memcpy(C + i_lda_plus_j + (ii + 6) * lda, C_padded[ii + 6], sizeof(double) * curN);
+                memcpy(C + i_lda_plus_j + (ii + 7) * lda, C_padded[ii + 7], sizeof(double) * curN);
+                ii += 8;
+            }
+            if (ii < curM) {
+                switch (curM - ii) {
+                    case 7 : memcpy(C + i_lda_plus_j + ii * lda, C_padded[ii], sizeof(double) * curN); ii++;
+                    case 6 : memcpy(C + i_lda_plus_j + ii * lda, C_padded[ii], sizeof(double) * curN); ii++;
+                    case 5 : memcpy(C + i_lda_plus_j + ii * lda, C_padded[ii], sizeof(double) * curN); ii++;
+                    case 4 : memcpy(C + i_lda_plus_j + ii * lda, C_padded[ii], sizeof(double) * curN); ii++;
+                    case 3 : memcpy(C + i_lda_plus_j + ii * lda, C_padded[ii], sizeof(double) * curN); ii++;
+                    case 2 : memcpy(C + i_lda_plus_j + ii * lda, C_padded[ii], sizeof(double) * curN); ii++;
+                    case 1 : memcpy(C + i_lda_plus_j + ii * lda, C_padded[ii], sizeof(double) * curN);
+                }
+            }
+            // ---------------
         }
     }
 }
