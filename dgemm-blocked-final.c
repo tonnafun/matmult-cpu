@@ -440,16 +440,24 @@ void square_dgemm (int lda, double* restrict A, double* restrict B, double* rest
 
             // ---------------
             int ii = 0;
-            int block_limit = (curM / 4) * 4;
+            int block_limit = (curM / 8) * 8;
             while (ii < block_limit) {
                 memcpy(C_padded[ii], C + i_lda_plus_j + ii * lda, sizeof(double) * curN);
                 memcpy(C_padded[ii + 1], C + i_lda_plus_j + (ii + 1) * lda, sizeof(double) * curN);
                 memcpy(C_padded[ii + 2], C + i_lda_plus_j + (ii + 2) * lda, sizeof(double) * curN);
                 memcpy(C_padded[ii + 3], C + i_lda_plus_j + (ii + 3) * lda, sizeof(double) * curN);
-                ii += 4;
+                memcpy(C_padded[ii + 4], C + i_lda_plus_j + (ii + 4) * lda, sizeof(double) * curN);
+                memcpy(C_padded[ii + 5], C + i_lda_plus_j + (ii + 5) * lda, sizeof(double) * curN);
+                memcpy(C_padded[ii + 6], C + i_lda_plus_j + (ii + 6) * lda, sizeof(double) * curN);
+                memcpy(C_padded[ii + 7], C + i_lda_plus_j + (ii + 7) * lda, sizeof(double) * curN);
+                ii += 8;
             }
             if (ii < curM) {
                 switch (curM - ii) {
+                    case 7 : memcpy(C_padded[ii], C + i_lda_plus_j + ii * lda, sizeof(double) * curN); ii++;
+                    case 6 : memcpy(C_padded[ii], C + i_lda_plus_j + ii * lda, sizeof(double) * curN); ii++;
+                    case 5 : memcpy(C_padded[ii], C + i_lda_plus_j + ii * lda, sizeof(double) * curN); ii++;
+                    case 4 : memcpy(C_padded[ii], C + i_lda_plus_j + ii * lda, sizeof(double) * curN); ii++;
                     case 3 : memcpy(C_padded[ii], C + i_lda_plus_j + ii * lda, sizeof(double) * curN); ii++;
                     case 2 : memcpy(C_padded[ii], C + i_lda_plus_j + ii * lda, sizeof(double) * curN); ii++;
                     case 1 : memcpy(C_padded[ii], C + i_lda_plus_j + ii * lda, sizeof(double) * curN);
