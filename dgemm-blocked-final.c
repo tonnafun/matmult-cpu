@@ -413,11 +413,12 @@ void square_dgemm (int lda, double* restrict A, double* restrict B, double* rest
 
 //    block_square_multilv2(lda, lda, lda, lda, A, B, C, A_padded, B_padded, C_padded);
 
-    for (int i = 0; i < M; i += BLOCK_SIZE2) {
-        int curM = min (BLOCK_SIZE2, M - i);
 
-        for (int j = 0; j < N; j += BLOCK_SIZE2) {
-            int curN = min (BLOCK_SIZE2, N - j);
+    for (int i = 0; i < lda; i += BLOCK_SIZE2) {
+        int curM = min (BLOCK_SIZE2, lda - i);
+
+        for (int j = 0; j < lda; j += BLOCK_SIZE2) {
+            int curN = min (BLOCK_SIZE2, lda - j);
 
 //            double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) C_padded[BLOCK_SIZE2][BLOCK_SIZE2] = {0};
 
@@ -435,11 +436,11 @@ void square_dgemm (int lda, double* restrict A, double* restrict B, double* rest
             for (int ii = 0; ii < curM; ++ii)
                 memcpy(C_padded + ii * BLOCK_SIZE2, C + i_lda_plus_j + ii * lda, sizeof(double) * curN);
 
-            for (int k = 0; k < K; k += BLOCK_SIZE2) {
+            for (int k = 0; k < lda; k += BLOCK_SIZE2) {
                 int i_lda_plus_k = i_lda + k;
                 int k_lda_plus_j = k * lda + j;
 
-                int curK = min (BLOCK_SIZE2, K - k);
+                int curK = min (BLOCK_SIZE2, lda - k);
 
 //                double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) A_padded[BLOCK_SIZE2][BLOCK_SIZE2] = {0};
 //                double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) B_padded[BLOCK_SIZE2][BLOCK_SIZE2] = {0};
