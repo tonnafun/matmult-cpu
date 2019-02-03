@@ -412,7 +412,9 @@ void square_dgemm (int lda, double* restrict A, double* restrict B, double* rest
     double __attribute__(( aligned(__BIGGEST_ALIGNMENT__))) B_padded[BLOCK_SIZE2][BLOCK_SIZE2] = {0};
 
 //    block_square_multilv2(lda, lda, lda, lda, A, B, C, A_padded, B_padded, C_padded);
-
+    // TODO: Array indexing vs. pointer arithmetic.
+    // pointer arithmetic: 6, 7, 6, 8, ....
+    // array indexing: 1, 2, 3, 4, ..., 17, 18, 18, 18, ...
 
     for (int i = 0; i < lda; i += BLOCK_SIZE2) {
         int curM = min (BLOCK_SIZE2, lda - i);
@@ -433,8 +435,27 @@ void square_dgemm (int lda, double* restrict A, double* restrict B, double* rest
 //                for (int jj = 0; jj < curN; ++jj)
 //                    C_padded[ii][jj] = C[i_lda_plus_j + ii * lda + jj];
 
-            for (int ii = 0; ii < curM; ++ii)
+//            for (int ii = 0; ii < curM; ++ii)
+//                memcpy(C_padded[ii], C + i_lda_plus_j + ii * lda, sizeof(double) * curN);
+
+            // ---------------
+            int ii = 0;
+            int block_limit = (curM / 4) * 4;
+            while (ii < block_limit) {
                 memcpy(C_padded[ii], C + i_lda_plus_j + ii * lda, sizeof(double) * curN);
+                memcpy(C_padded[ii + 1], C + i_lda_plus_j + (ii + 1) * lda, sizeof(double) * curN);
+                memcpy(C_padded[ii + 2], C + i_lda_plus_j + (ii + 2) * lda, sizeof(double) * curN);
+                memcpy(C_padded[ii + 3], C + i_lda_plus_j + (ii + 3) * lda, sizeof(double) * curN);
+                ii += 4;
+            }
+            if (ii < curM) {
+                switch (curM - ii) {
+                    case 3 : memcpy(C_padded[ii], C + i_lda_plus_j + ii * lda, sizeof(double) * curN); i++;
+                    case 2 : memcpy(C_padded[ii], C + i_lda_plus_j + ii * lda, sizeof(double) * curN); i++;
+                    case 1 : memcpy(C_padded[ii], C + i_lda_plus_j + ii * lda, sizeof(double) * curN); i++;
+                }
+            }
+            // ---------------
 
             for (int k = 0; k < lda; k += BLOCK_SIZE2) {
                 int i_lda_plus_k = i_lda + k;
