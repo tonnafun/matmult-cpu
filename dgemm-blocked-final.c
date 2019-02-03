@@ -434,7 +434,7 @@ void square_dgemm (int lda, double* restrict A, double* restrict B, double* rest
 //                    C_padded[ii][jj] = C[i_lda_plus_j + ii * lda + jj];
 
             for (int ii = 0; ii < curM; ++ii)
-                memcpy(C_padded + ii * BLOCK_SIZE2, C + i_lda_plus_j + ii * lda, sizeof(double) * curN);
+                memcpy(C_padded[ii], C + i_lda_plus_j + ii * lda, sizeof(double) * curN);
 
             for (int k = 0; k < lda; k += BLOCK_SIZE2) {
                 int i_lda_plus_k = i_lda + k;
@@ -452,7 +452,7 @@ void square_dgemm (int lda, double* restrict A, double* restrict B, double* rest
 //                        A_padded[ii][kk] = A[i_lda_plus_k + ii * lda + kk];
 
                 for (int ii = 0; ii < curM; ++ii) {
-                    memcpy(A_padded + ii * BLOCK_SIZE2, A + i_lda_plus_k + ii * lda, sizeof(double) * curK);
+                    memcpy(A_padded[ii], A + i_lda_plus_k + ii * lda, sizeof(double) * curK);
                 }
 
 //                for (int kk = 0; kk < curK; ++kk)
@@ -460,7 +460,7 @@ void square_dgemm (int lda, double* restrict A, double* restrict B, double* rest
 //                        B_padded[kk][jj] = B[k_lda_plus_j + kk * lda + jj];
 
                 for (int kk = 0; kk < curK; ++kk)
-                    memcpy(B_padded + kk * BLOCK_SIZE2, B + k_lda_plus_j + kk * lda, sizeof(double) * curN);
+                    memcpy(B_padded[kk], B + k_lda_plus_j + kk * lda, sizeof(double) * curN);
 
 //                block_square_multilv1(lda, curM, curN, curK, A + i * lda + k, B + k * lda + j, C + i * lda + j);
 
@@ -473,7 +473,7 @@ void square_dgemm (int lda, double* restrict A, double* restrict B, double* rest
 //                    C[i_lda_plus_j + ii * lda + jj] = C_padded[ii][jj];
 
             for (int ii = 0; ii < curM; ++ii)
-                memcpy(C + i_lda_plus_j + ii * lda, C_padded + ii * BLOCK_SIZE2, sizeof(double) * curN);
+                memcpy(C + i_lda_plus_j + ii * lda, C_padded[ii], sizeof(double) * curN);
         }
     }
 }
