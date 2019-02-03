@@ -488,8 +488,35 @@ void square_dgemm (int lda, double* restrict A, double* restrict B, double* rest
 //                    for (int jj = 0; jj < curN; ++jj)
 //                        B_padded[kk][jj] = B[k_lda_plus_j + kk * lda + jj];
 
-                for (int kk = 0; kk < curK; ++kk)
+//                for (int kk = 0; kk < curK; ++kk)
+//                    memcpy(B_padded[kk], B + k_lda_plus_j + kk * lda, sizeof(double) * curN);
+
+                // ---------------
+                int kk = 0;
+                int block_limit = (curK / 8) * 8;
+                while (kk < block_limit) {
                     memcpy(B_padded[kk], B + k_lda_plus_j + kk * lda, sizeof(double) * curN);
+                    memcpy(B_padded[kk + 1], B + k_lda_plus_j + (kk + 1) * lda, sizeof(double) * curN);
+                    memcpy(B_padded[kk + 2], B + k_lda_plus_j + (kk + 2) * lda, sizeof(double) * curN);
+                    memcpy(B_padded[kk + 3], B + k_lda_plus_j + (kk + 3) * lda, sizeof(double) * curN);
+                    memcpy(B_padded[kk + 4], B + k_lda_plus_j + (kk + 4) * lda, sizeof(double) * curN);
+                    memcpy(B_padded[kk + 5], B + k_lda_plus_j + (kk + 5) * lda, sizeof(double) * curN);
+                    memcpy(B_padded[kk + 6], B + k_lda_plus_j + (kk + 6) * lda, sizeof(double) * curN);
+                    memcpy(B_padded[kk + 7], B + k_lda_plus_j + (kk + 7) * lda, sizeof(double) * curN);
+                    kk += 8;
+                }
+                if (kk < curK) {
+                    switch (curK - kk) {
+                        case 7 : memcpy(B_padded[kk], B + k_lda_plus_j + kk * lda, sizeof(double) * curN); kk++;
+                        case 6 : memcpy(B_padded[kk], B + k_lda_plus_j + kk * lda, sizeof(double) * curN); kk++;
+                        case 5 : memcpy(B_padded[kk], B + k_lda_plus_j + kk * lda, sizeof(double) * curN); kk++;
+                        case 4 : memcpy(B_padded[kk], B + k_lda_plus_j + kk * lda, sizeof(double) * curN); kk++;
+                        case 3 : memcpy(B_padded[kk], B + k_lda_plus_j + kk * lda, sizeof(double) * curN); kk++;
+                        case 2 : memcpy(B_padded[kk], B + k_lda_plus_j + kk * lda, sizeof(double) * curN); kk++;
+                        case 1 : memcpy(B_padded[kk], B + k_lda_plus_j + kk * lda, sizeof(double) * curN); kk++;
+                    }
+                }
+                // ---------------
 
 //                block_square_multilv1(lda, curM, curN, curK, A + i * lda + k, B + k * lda + j, C + i * lda + j);
 
