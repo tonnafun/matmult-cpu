@@ -416,7 +416,7 @@ static inline void do_block_1_small(int M, int N, int K, double* restrict A_padd
     for (int i = 0; i < M; i += REG_BLOCK_SIZE_M_SMALL)
         for (int j = 0; j < N; j += REG_BLOCK_SIZE_N_SMALL)
             for (int k = 0; k < K; k += REG_BLOCK_SIZE_K_SMALL) {
-                int curK = min (REG_BLOCK_SIZE_K, K - k);
+                int curK = min (REG_BLOCK_SIZE_K_SMALL, K - k);
 
                 avx_kernel_small(curK,
                            A_padded + i * BLOCK_SIZE2_SMALL + k,
@@ -431,13 +431,13 @@ static inline void do_block_2_small(int M, int N, int K, double* restrict A_padd
 //        return;
 
     for (int i = 0; i < M; i += L1_BLOCK_SIZE_M_SMALL) {
-        int curM = min (L1_BLOCK_SIZE_M, M - i);
+        int curM = min (L1_BLOCK_SIZE_M_SMALL, M - i);
 
         for (int j = 0; j < N; j += L1_BLOCK_SIZE_N_SMALL) {
-            int curN = min (L1_BLOCK_SIZE_N, N - j);
+            int curN = min (L1_BLOCK_SIZE_N_SMALL, N - j);
 
             for (int k = 0; k < K; k += L1_BLOCK_SIZE_K_SMALL) {
-                int curK = min (L1_BLOCK_SIZE_K, K - k);
+                int curK = min (L1_BLOCK_SIZE_K_SMALL, K - k);
 
                 do_block_1_small(curM, curN, curK,
                            A_padded + i * BLOCK_SIZE2_SMALL + k,
