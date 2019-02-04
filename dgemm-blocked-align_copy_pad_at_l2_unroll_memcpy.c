@@ -277,9 +277,6 @@ void square_dgemm (int lda, double* restrict A, double* restrict B, double* rest
 
             }
 
-            for (int ii = 0; ii < curM; ++ii)
-                memcpy(C + i_lda_plus_j + ii * lda, C_padded[ii], sizeof(double) * curN);
-
             // ---------------
             ii = 0;
             block_limit = (curM / 8) * 8;

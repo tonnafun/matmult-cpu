@@ -39,7 +39,6 @@ lv3 cache: 10k+k
 #define min(a,b) (((a)<(b))?(a):(b))
 
 
-
 /* This auxiliary subroutine performs a smaller dgemm operation
  *  C := C + A * B
  * where C is M-by-N, A is M-by-K, and B is K-by-N. */
@@ -61,9 +60,9 @@ lv3 cache: 10k+k
 
 
 
-//M = REGA = 3, N = REGB*256/64 = 16
-//for block1, M = 3, N = 16, which means all c00-c13 are stored in C
-////K changeable
+// M = REGA = 3, N = REGB*256/64 = 16
+// for block1, M = 3, N = 16, which means all c00-c13 are stored in C
+// K changeable
 static inline void avx_kernel(int K, double* restrict A, double* restrict B, double* restrict C) {
     register __m256d c00, c01, c02, c03;
     register __m256d c10, c11, c12, c13;
@@ -84,6 +83,31 @@ static inline void avx_kernel(int K, double* restrict A, double* restrict B, dou
     c23 = _mm256_loadu_pd(&C[2 * BLOCK_SIZE2 + 12]);
 
     for(int p = 0; p < K; ++p){
+        register __m256d a1 = _mm256_broadcast_sd(&A[0*BLOCK_SIZE2+p]);
+        register __m256d a2 = _mm256_broadcast_sd(&A[1*BLOCK_SIZE2+p]);
+        register __m256d a3 = _mm256_broadcast_sd(&A[2*BLOCK_SIZE2+p]);
+
+        register __m256d b = _mm256_loadu_pd(&B[p*BLOCK_SIZE2 + 0*8]);
+        c00 = _mm256_fmadd_pd(a1,b,c00);
+        c10 = _mm256_fmadd_pd(a2,b,c10);
+        c20 = _mm256_fmadd_pd(a3,b,c20);
+
+        b = _mm256_loadu_pd(&B[p*BLOCK_SIZE2 + 4 + 0*8]);
+        c01 = _mm256_fmadd_pd(a1,b,c01);
+        c11 = _mm256_fmadd_pd(a2,b,c11);
+        c21 = _mm256_fmadd_pd(a3,b,c21);
+
+        b = _mm256_loadu_pd(&B[p*BLOCK_SIZE2 + 0 + 1*8]);
+        c02 = _mm256_fmadd_pd(a1,b,c02);
+        c12 = _mm256_fmadd_pd(a2,b,c12);
+        c22 = _mm256_fmadd_pd(a3,b,c22);
+
+        b = _mm256_loadu_pd(&B[p*BLOCK_SIZE2 + 4 + 1*8]);
+        c03 = _mm256_fmadd_pd(a1,b,c03);
+        c13 = _mm256_fmadd_pd(a2,b,c13);
+        c23 = _mm256_fmadd_pd(a3,b,c23);
+
+        /*
         // register __m256d b1 = _mm256_loadu_pd(&B[p*lda + bi*8]);//4 8float
         // register __m256d b2 = _mm256_loadu_pd(&B[p*lda+4+bi*8]);//4 8float
         //if(ai == 0 && bi == 0){
@@ -143,6 +167,7 @@ static inline void avx_kernel(int K, double* restrict A, double* restrict B, dou
 
         // if no enough A, then less A is needed;
         // so we have to consider unsafe M and N, but K is safe
+        */
 
     }
 

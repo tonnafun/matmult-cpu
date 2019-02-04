@@ -4,7 +4,7 @@
 #include <avx2intrin.h>
 #include <stdint.h>
 #include <string.h>
-const char* dgemm_desc = "Simple blocked dgemm.";
+//const char* dgemm_desc = "Simple blocked dgemm.";
 
 
 /**
