@@ -630,7 +630,7 @@ static inline void do_matrix_small(int lda, double* restrict A, double* restrict
 
 
 void square_dgemm (int lda, double* restrict A, double* restrict B, double* restrict C) {
-    do_matrix(int lda, double* restrict A, double* restrict B, double* restrict C);
-//    do_matrix_small(int lda, double* restrict A, double* restrict B, double* restrict C);
+    do_matrix(lda, A, B, C);
+//    do_matrix_small(lda, A, B, C);
 }
 
