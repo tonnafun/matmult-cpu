@@ -427,8 +427,6 @@ static inline void do_block_1_small(int M, int N, int K, double* restrict A_padd
 
 
 static inline void do_block_2_small(int M, int N, int K, double* restrict A_padded, double* restrict B_padded, double* restrict C_padded) {
-//    if (M == 0 || N == 0 || K == 0)
-//        return;
 
     for (int i = 0; i < M; i += L1_BLOCK_SIZE_M_SMALL) {
         int curM = min (L1_BLOCK_SIZE_M_SMALL, M - i);
@@ -630,7 +628,9 @@ static inline void do_matrix_small(int lda, double* restrict A, double* restrict
 
 
 void square_dgemm (int lda, double* restrict A, double* restrict B, double* restrict C) {
-//    do_matrix(lda, A, B, C);
-    do_matrix_small(lda, A, B, C);
+    if (lda < 128)
+        do_matrix_small(lda, A, B, C);
+    else
+       do_matrix(lda, A, B, C);
 }
 
