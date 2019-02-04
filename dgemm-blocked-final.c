@@ -439,7 +439,7 @@ static inline void do_block_2_small(int M, int N, int K, double* restrict A_padd
             for (int k = 0; k < K; k += L1_BLOCK_SIZE_K_SMALL) {
                 int curK = min (L1_BLOCK_SIZE_K, K - k);
 
-                do_block_1(curM, curN, curK,
+                do_block_1_small(curM, curN, curK,
                            A_padded + i * BLOCK_SIZE2_SMALL + k,
                            B_padded + k * BLOCK_SIZE2_SMALL + j,
                            C_padded + i * BLOCK_SIZE2_SMALL + j);
@@ -587,7 +587,7 @@ static inline void do_matrix_small(int lda, double* restrict A, double* restrict
 
 //                block_square_multilv1(lda, curM, curN, curK, A + i * lda + k, B + k * lda + j, C + i * lda + j);
 
-                do_block_2(curM, curN, curK, A_padded, B_padded, C_padded);
+                do_block_2_small(curM, curN, curK, A_padded, B_padded, C_padded);
 
             }
 
@@ -630,7 +630,7 @@ static inline void do_matrix_small(int lda, double* restrict A, double* restrict
 
 
 void square_dgemm (int lda, double* restrict A, double* restrict B, double* restrict C) {
-    do_matrix(lda, A, B, C);
-//    do_matrix_small(lda, A, B, C);
+//    do_matrix(lda, A, B, C);
+    do_matrix_small(lda, A, B, C);
 }
 
