@@ -33,7 +33,7 @@ lv3 cache: 10k+k
 #define L1_BLOCK_SIZE_N 32
 #define L1_BLOCK_SIZE_K 32
 #define REG_BLOCK_SIZE_M REGA
-#define REG_BLOCK_SIZE_N REGB * 4
+#define REG_BLOCK_S48IZE_N REGB * 4
 #define REG_BLOCK_SIZE_K L1_BLOCK_SIZE_K
 
 
